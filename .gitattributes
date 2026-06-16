@@ -1,0 +1,18 @@
+# Normaliser toutes les fins de ligne en LF dans le repo
+* text=auto eol=lf
+
+# Fichiers texte importants
+*.md     text eol=lf
+*.py     text eol=lf
+*.sh     text eol=lf
+*.env*   text eol=lf
+
+# Scripts Windows (gardent CRLF si vraiment nécessaire)
+*.ps1    text eol=crlf
+
+# Fichiers binaires (pas de conversion)
+*.zip    binary
+
+# Clés et fichiers SSH
+github      text eol=lf
+github.pub  text eol=lf
