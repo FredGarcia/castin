@@ -1,0 +1,1271 @@
+{
+  "horodatage": "2026-06-18T00:48:33+02:00",
+  "rules_version": "1.0.0",
+  "resultat": {
+    "schema": "1.0",
+    "rules_version": "1.0.0",
+    "calibration_active": false,
+    "seuil_routage": 0.0,
+    "gabarit_signature": "0b15a9d4",
+    "identification": {
+      "solution": "S20001",
+      "auteur": "Alice Martin",
+      "responsable": "Bob Lefevre"
+    },
+    "points_a_verifier": [],
+    "ordre_champs": [
+      "lien_dossier_archi",
+      "schema_applicatif",
+      "description_fonctionnelle",
+      "donnees_solution",
+      "principes_decisions",
+      "description_technique",
+      "plage_fonctionnement",
+      "supervision",
+      "observabilite",
+      "log",
+      "sauvegardes",
+      "servitudes",
+      "comptes_services",
+      "certificats",
+      "liste_blanche",
+      "flux",
+      "support",
+      "changement_mep",
+      "matiere_repo",
+      "procedure_restauration",
+      "procedure_reconstruction",
+      "procedure_resynchronisation",
+      "informations_supplementaires"
+    ],
+    "champs": {
+      "lien_dossier_archi": {
+        "label": "Lien Dossier Archi (DAP…)",
+        "tab": "Description détaillée",
+        "kind": "link",
+        "content": "https://archi.example.com/DAP1001\nDAP1001",
+        "score_brut": 0.8,
+        "confiance": 0.8,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 5,
+            "titre": "2.2 Architecture fonctionnelle & applicative",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              6,
+              8
+            ],
+            "extrait": "https://archi.example.com/DAP1001\nDAP1001"
+          }
+        ],
+        "selection_moteur": 5,
+        "raison": "section repérée.",
+        "titre_repere": "2.2 Architecture fonctionnelle & applicative",
+        "source_spans": [
+          [
+            6,
+            8
+          ]
+        ],
+        "suggestions": []
+      },
+      "schema_applicatif": {
+        "label": "Schéma Applicatif (ADU…)",
+        "tab": "Description détaillée",
+        "kind": "link",
+        "content": "https://archi.example.com/DAP1001\nADU2002",
+        "score_brut": 0.8,
+        "confiance": 0.8,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 2,
+            "titre": "2.1 Description de la solution",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              3,
+              5
+            ],
+            "extrait": ""
+          },
+          {
+            "index": 5,
+            "titre": "2.2 Architecture fonctionnelle & applicative",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              6,
+              8
+            ],
+            "extrait": "https://archi.example.com/DAP1001\nADU2002"
+          }
+        ],
+        "selection_moteur": 2,
+        "raison": "section repérée.",
+        "titre_repere": "2.1 Description de la solution",
+        "source_spans": [
+          [
+            3,
+            5
+          ],
+          [
+            6,
+            8
+          ]
+        ],
+        "suggestions": []
+      },
+      "description_fonctionnelle": {
+        "label": "Description Fonctionnelle",
+        "tab": "Description détaillée",
+        "kind": "text",
+        "content": "La solution permet la gestion des commandes clients en temps réel.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 2,
+            "titre": "2.1 Description de la solution",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              3,
+              5
+            ],
+            "extrait": "La solution permet la gestion des commandes clients en temps réel."
+          }
+        ],
+        "selection_moteur": 2,
+        "raison": "section repérée.",
+        "titre_repere": "2.1 Description de la solution",
+        "source_spans": [
+          [
+            3,
+            5
+          ]
+        ],
+        "suggestions": []
+      },
+      "donnees_solution": {
+        "label": "Données de la solution",
+        "tab": "Description détaillée",
+        "kind": "text",
+        "content": "Base de données Oracle, schéma CMD_PROD.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 8,
+            "titre": "2.3 Données",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              9,
+              10
+            ],
+            "extrait": "Base de données Oracle, schéma CMD_PROD."
+          }
+        ],
+        "selection_moteur": 8,
+        "raison": "section repérée.",
+        "titre_repere": "2.3 Données",
+        "source_spans": [
+          [
+            9,
+            10
+          ]
+        ],
+        "suggestions": []
+      },
+      "principes_decisions": {
+        "label": "Principes et décisions",
+        "tab": "Description détaillée",
+        "kind": "empty",
+        "content": "",
+        "score_brut": null,
+        "confiance": null,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [],
+        "selection_moteur": null,
+        "raison": "Champ toujours vide (règle 5).",
+        "titre_repere": null,
+        "source_spans": [],
+        "suggestions": []
+      },
+      "description_technique": {
+        "label": "Description Technique",
+        "tab": "Description détaillée",
+        "kind": "text",
+        "content": "Solution hébergée sur Kubernetes (3 pods), exposée via une API REST.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 10,
+            "titre": "4.1 Architecture technique",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              11,
+              12
+            ],
+            "extrait": "Solution hébergée sur Kubernetes (3 pods), exposée via une API REST."
+          }
+        ],
+        "selection_moteur": 10,
+        "raison": "section repérée.",
+        "titre_repere": "4.1 Architecture technique",
+        "source_spans": [
+          [
+            11,
+            12
+          ]
+        ],
+        "suggestions": []
+      },
+      "plage_fonctionnement": {
+        "label": "Plage de fonctionnement / maintenance",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Disponible 24/7, fenêtre de maintenance le dimanche 02h00-04h00.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 12,
+            "titre": "3.3 Plages de fonctionnement",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              13,
+              14
+            ],
+            "extrait": "Disponible 24/7, fenêtre de maintenance le dimanche 02h00-04h00."
+          }
+        ],
+        "selection_moteur": 12,
+        "raison": "section repérée.",
+        "titre_repere": "3.3 Plages de fonctionnement",
+        "source_spans": [
+          [
+            13,
+            14
+          ]
+        ],
+        "suggestions": []
+      },
+      "supervision": {
+        "label": "Supervision",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Supervisée par Centreon, sondes HTTP toutes les 5 minutes.\n6.1 Alertes\nAlerte envoyée à l'équipe d'astreinte par email et SMS.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 14,
+            "titre": "6 Supervision",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              15,
+              18
+            ],
+            "extrait": "Supervisée par Centreon, sondes HTTP toutes les 5 minutes.\n6.1 Alertes\nAlerte envoyée à l'équipe d'astreinte par email et SMS."
+          }
+        ],
+        "selection_moteur": 14,
+        "raison": "section repérée.",
+        "titre_repere": "6 Supervision",
+        "source_spans": [
+          [
+            15,
+            18
+          ]
+        ],
+        "suggestions": []
+      },
+      "observabilite": {
+        "label": "Observabilité",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Tableaux de bord Grafana : taux d'erreur, latence, volumétrie.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 18,
+            "titre": "9 Métrologie",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              19,
+              20
+            ],
+            "extrait": "Tableaux de bord Grafana : taux d'erreur, latence, volumétrie."
+          }
+        ],
+        "selection_moteur": 18,
+        "raison": "section repérée.",
+        "titre_repere": "9 Métrologie",
+        "source_spans": [
+          [
+            19,
+            20
+          ]
+        ],
+        "suggestions": []
+      },
+      "log": {
+        "label": "Log",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Logs centralisés dans ELK, niveau INFO par défaut.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 20,
+            "titre": "8.2 Diagnostique",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              21,
+              22
+            ],
+            "extrait": "Logs centralisés dans ELK, niveau INFO par défaut."
+          }
+        ],
+        "selection_moteur": 20,
+        "raison": "section repérée.",
+        "titre_repere": "8.2 Diagnostique",
+        "source_spans": [
+          [
+            21,
+            22
+          ]
+        ],
+        "suggestions": []
+      },
+      "sauvegardes": {
+        "label": "Sauvegardes",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Sauvegarde quotidienne de la base à 01h00, conservation 30 jours.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 22,
+            "titre": "7 Sauvegarde",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              23,
+              24
+            ],
+            "extrait": "Sauvegarde quotidienne de la base à 01h00, conservation 30 jours."
+          }
+        ],
+        "selection_moteur": 22,
+        "raison": "section repérée.",
+        "titre_repere": "7 Sauvegarde",
+        "source_spans": [
+          [
+            23,
+            24
+          ]
+        ],
+        "suggestions": []
+      },
+      "servitudes": {
+        "label": "Servitudes et ordonnancements",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Le job nocturne JOB_EXPORT doit s'exécuter après JOB_CONSOLIDATION.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 24,
+            "titre": "11 Servitudes et ordonnancements",
+            "niveau": 1,
+            "score": 0.4737,
+            "phrase": false,
+            "span": [
+              25,
+              26
+            ],
+            "extrait": "Le job nocturne JOB_EXPORT doit s'exécuter après JOB_CONSOLIDATION."
+          }
+        ],
+        "selection_moteur": 24,
+        "raison": "section repérée.",
+        "titre_repere": "11 Servitudes et ordonnancements",
+        "source_spans": [
+          [
+            25,
+            26
+          ]
+        ],
+        "suggestions": []
+      },
+      "comptes_services": {
+        "label": "Comptes et services",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Compte | Usage\nsvc_cmd_app | Exécution de l'application\nsvc_cmd_batch | Exécution des traitements batch",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 26,
+            "titre": "12.2 Compte de service",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              27,
+              28
+            ],
+            "extrait": "Compte | Usage\nsvc_cmd_app | Exécution de l'application\nsvc_cmd_batch | Exécution des traitements batch"
+          }
+        ],
+        "selection_moteur": 26,
+        "raison": "section repérée.",
+        "titre_repere": "12.2 Compte de service",
+        "source_spans": [
+          [
+            27,
+            28
+          ]
+        ],
+        "suggestions": []
+      },
+      "certificats": {
+        "label": "Certificats",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Certificat | Échéance\ncmd.prod.example.com | 2027-01-15",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 28,
+            "titre": "12.3 Certificats",
+            "niveau": 1,
+            "score": 0.9524,
+            "phrase": false,
+            "span": [
+              29,
+              30
+            ],
+            "extrait": "Certificat | Échéance\ncmd.prod.example.com | 2027-01-15"
+          }
+        ],
+        "selection_moteur": 28,
+        "raison": "section repérée.",
+        "titre_repere": "12.3 Certificats",
+        "source_spans": [
+          [
+            29,
+            30
+          ]
+        ],
+        "suggestions": []
+      },
+      "liste_blanche": {
+        "label": "Liste blanche",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Adresse IP | Port | Justification\n10.0.1.5 | 443 | Appel API partenaire",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 30,
+            "titre": "12.4 Liste blanche",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              31,
+              32
+            ],
+            "extrait": "Adresse IP | Port | Justification\n10.0.1.5 | 443 | Appel API partenaire"
+          }
+        ],
+        "selection_moteur": 30,
+        "raison": "section repérée.",
+        "titre_repere": "12.4 Liste blanche",
+        "source_spans": [
+          [
+            31,
+            32
+          ]
+        ],
+        "suggestions": []
+      },
+      "flux": {
+        "label": "Flux",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Source | Destination | Protocole | Port\nApp CMD | Base Oracle | TCP | 1521\nApp CMD | API Partenaire | HTTPS | 443",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 32,
+            "titre": "4.3 Flux et interdépendances",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              33,
+              34
+            ],
+            "extrait": "Source | Destination | Protocole | Port\nApp CMD | Base Oracle | TCP | 1521\nApp CMD | API Partenaire | HTTPS | 443"
+          }
+        ],
+        "selection_moteur": 32,
+        "raison": "section repérée.",
+        "titre_repere": "4.3 Flux et interdépendances",
+        "source_spans": [
+          [
+            33,
+            34
+          ]
+        ],
+        "suggestions": []
+      },
+      "support": {
+        "label": "Support",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Activité | Responsable\nSupervision N1 | Equipe Exploitation\nCorrectif applicatif | Equipe Dev CMD",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 34,
+            "titre": "8.1 Matrice de responsabilité",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              35,
+              36
+            ],
+            "extrait": "Activité | Responsable\nSupervision N1 | Equipe Exploitation\nCorrectif applicatif | Equipe Dev CMD"
+          }
+        ],
+        "selection_moteur": 34,
+        "raison": "section repérée.",
+        "titre_repere": "8.1 Matrice de responsabilité",
+        "source_spans": [
+          [
+            35,
+            36
+          ]
+        ],
+        "suggestions": []
+      },
+      "changement_mep": {
+        "label": "Changement et MEP",
+        "tab": "DEX",
+        "kind": "merge",
+        "content": "Toute opération de maintenance doit être validée via un ticket de changement CHG.\n\nLes mises en production sont planifiées le mercredi soir, hors période de gel.",
+        "score_brut": 0.75,
+        "confiance": 0.75,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 36,
+            "titre": "10 Contrôle des opérations",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              37,
+              38
+            ],
+            "extrait": "Toute opération de maintenance doit être validée via un ticket de changement CHG."
+          },
+          {
+            "index": 38,
+            "titre": "5 Changements et MEP",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              39,
+              40
+            ],
+            "extrait": "Les mises en production sont planifiées le mercredi soir, hors période de gel."
+          }
+        ],
+        "selection_moteur": 36,
+        "raison": "section repérée.",
+        "titre_repere": "10 Contrôle des opérations",
+        "source_spans": [
+          [
+            37,
+            38
+          ],
+          [
+            39,
+            40
+          ]
+        ],
+        "suggestions": []
+      },
+      "matiere_repo": {
+        "label": "Matière (repo)",
+        "tab": "DEX",
+        "kind": "merge",
+        "content": "Code source disponible sur GitLab : groupe/cmd-app.\nLes livraisons sont validées via Merge Request avant fusion sur la branche main.\n\nRéférences \"Merge Request\" trouvées dans le document :\nLes livraisons sont validées via Merge Request avant fusion sur la branche main.",
+        "score_brut": 0.65,
+        "confiance": 0.65,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 40,
+            "titre": "5.1 Référentiel",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              41,
+              43
+            ],
+            "extrait": "Code source disponible sur GitLab : groupe/cmd-app.\nLes livraisons sont validées via Merge Request avant fusion sur la branche main."
+          }
+        ],
+        "selection_moteur": 40,
+        "raison": "section repérée, repérage par mot-clé simple (à confirmer).",
+        "titre_repere": "5.1 Référentiel",
+        "source_spans": [
+          [
+            41,
+            43
+          ]
+        ],
+        "suggestions": []
+      },
+      "procedure_restauration": {
+        "label": "Procédure de restauration",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Restaurer la base depuis la dernière sauvegarde via le script restore_cmd.sh.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 43,
+            "titre": "13.1 Restauration",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              44,
+              45
+            ],
+            "extrait": "Restaurer la base depuis la dernière sauvegarde via le script restore_cmd.sh."
+          }
+        ],
+        "selection_moteur": 43,
+        "raison": "section repérée.",
+        "titre_repere": "13.1 Restauration",
+        "source_spans": [
+          [
+            44,
+            45
+          ]
+        ],
+        "suggestions": []
+      },
+      "procedure_reconstruction": {
+        "label": "Procédure de reconstruction",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Reconstruire l'environnement à partir du pipeline Terraform 'infra-cmd'.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 45,
+            "titre": "13.2 Reconstruction",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              46,
+              47
+            ],
+            "extrait": "Reconstruire l'environnement à partir du pipeline Terraform 'infra-cmd'."
+          }
+        ],
+        "selection_moteur": 45,
+        "raison": "section repérée.",
+        "titre_repere": "13.2 Reconstruction",
+        "source_spans": [
+          [
+            46,
+            47
+          ]
+        ],
+        "suggestions": []
+      },
+      "procedure_resynchronisation": {
+        "label": "Procédure de resynchronisation",
+        "tab": "DEX",
+        "kind": "text",
+        "content": "Relancer le job de resynchronisation JOB_RESYNC_CMD en cas de désynchronisation.",
+        "score_brut": 0.9,
+        "confiance": 0.9,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 47,
+            "titre": "13.3 Resynchronisation",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": false,
+            "span": [
+              48,
+              49
+            ],
+            "extrait": "Relancer le job de resynchronisation JOB_RESYNC_CMD en cas de désynchronisation."
+          }
+        ],
+        "selection_moteur": 47,
+        "raison": "section repérée.",
+        "titre_repere": "13.3 Resynchronisation",
+        "source_spans": [
+          [
+            48,
+            49
+          ]
+        ],
+        "suggestions": []
+      },
+      "informations_supplementaires": {
+        "label": "Informations supplémentaires",
+        "tab": "DEX",
+        "kind": "appendix",
+        "content": "4.2.2 Assets mainframe\nNon applicable : la solution ne comporte pas de composants mainframe.\n14 Annexes\nContact astreinte : astreinte-cmd@example.com.\n\nAssets mainframe :\nNon applicable : la solution ne comporte pas de composants mainframe.",
+        "score_brut": 0.65,
+        "confiance": 0.65,
+        "route_attention": false,
+        "ambigu": false,
+        "candidats": [
+          {
+            "index": 49,
+            "titre": "4.2.2 Assets mainframe",
+            "niveau": 1,
+            "score": 1.0,
+            "phrase": true,
+            "span": [
+              50,
+              51
+            ],
+            "extrait": "Non applicable : la solution ne comporte pas de composants mainframe."
+          }
+        ],
+        "selection_moteur": 49,
+        "raison": "section repérée, repérage par mot-clé simple (à confirmer).",
+        "titre_repere": "4.2.2 Assets mainframe",
+        "source_spans": [
+          [
+            49,
+            53
+          ],
+          [
+            50,
+            51
+          ]
+        ],
+        "suggestions": []
+      }
+    },
+    "document": [
+      {
+        "index": 0,
+        "type": "paragraph",
+        "text": "Auteur : Alice Martin",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 1,
+        "type": "paragraph",
+        "text": "Responsable : Bob Lefevre",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 2,
+        "type": "paragraph",
+        "text": "2.1 Description de la solution",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 3,
+        "type": "paragraph",
+        "text": "La solution permet la gestion des commandes clients en temps réel.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 4,
+        "type": "paragraph",
+        "text": "Ce paragraphe est un texte d'aide explicatif, à ne pas reprendre dans CAST'IN.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": true
+      },
+      {
+        "index": 5,
+        "type": "paragraph",
+        "text": "2.2 Architecture fonctionnelle & applicative",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 6,
+        "type": "paragraph",
+        "text": "DAP1001",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 7,
+        "type": "paragraph",
+        "text": "Schéma applicatif : ADU2002",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 8,
+        "type": "paragraph",
+        "text": "2.3 Données",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 9,
+        "type": "paragraph",
+        "text": "Base de données Oracle, schéma CMD_PROD.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 10,
+        "type": "paragraph",
+        "text": "4.1 Architecture technique",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 11,
+        "type": "paragraph",
+        "text": "Solution hébergée sur Kubernetes (3 pods), exposée via une API REST.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 12,
+        "type": "paragraph",
+        "text": "3.3 Plages de fonctionnement",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 13,
+        "type": "paragraph",
+        "text": "Disponible 24/7, fenêtre de maintenance le dimanche 02h00-04h00.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 14,
+        "type": "paragraph",
+        "text": "6 Supervision",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 15,
+        "type": "paragraph",
+        "text": "Supervisée par Centreon, sondes HTTP toutes les 5 minutes.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 16,
+        "type": "paragraph",
+        "text": "6.1 Alertes",
+        "is_heading": true,
+        "level": 2,
+        "is_explanatory": false
+      },
+      {
+        "index": 17,
+        "type": "paragraph",
+        "text": "Alerte envoyée à l'équipe d'astreinte par email et SMS.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 18,
+        "type": "paragraph",
+        "text": "9 Métrologie",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 19,
+        "type": "paragraph",
+        "text": "Tableaux de bord Grafana : taux d'erreur, latence, volumétrie.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 20,
+        "type": "paragraph",
+        "text": "8.2 Diagnostique",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 21,
+        "type": "paragraph",
+        "text": "Logs centralisés dans ELK, niveau INFO par défaut.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 22,
+        "type": "paragraph",
+        "text": "7 Sauvegarde",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 23,
+        "type": "paragraph",
+        "text": "Sauvegarde quotidienne de la base à 01h00, conservation 30 jours.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 24,
+        "type": "paragraph",
+        "text": "11 Servitudes et ordonnancements",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 25,
+        "type": "paragraph",
+        "text": "Le job nocturne JOB_EXPORT doit s'exécuter après JOB_CONSOLIDATION.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 26,
+        "type": "paragraph",
+        "text": "12.2 Compte de service",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 27,
+        "type": "table",
+        "text": "Compte | Usage\nsvc_cmd_app | Exécution de l'application\nsvc_cmd_batch | Exécution des traitements batch",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 28,
+        "type": "paragraph",
+        "text": "12.3 Certificats",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 29,
+        "type": "table",
+        "text": "Certificat | Échéance\ncmd.prod.example.com | 2027-01-15",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 30,
+        "type": "paragraph",
+        "text": "12.4 Liste blanche",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 31,
+        "type": "table",
+        "text": "Adresse IP | Port | Justification\n10.0.1.5 | 443 | Appel API partenaire",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 32,
+        "type": "paragraph",
+        "text": "4.3 Flux et interdépendances",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 33,
+        "type": "table",
+        "text": "Source | Destination | Protocole | Port\nApp CMD | Base Oracle | TCP | 1521\nApp CMD | API Partenaire | HTTPS | 443",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 34,
+        "type": "paragraph",
+        "text": "8.1 Matrice de responsabilité",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 35,
+        "type": "table",
+        "text": "Activité | Responsable\nSupervision N1 | Equipe Exploitation\nCorrectif applicatif | Equipe Dev CMD",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 36,
+        "type": "paragraph",
+        "text": "10 Contrôle des opérations",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 37,
+        "type": "paragraph",
+        "text": "Toute opération de maintenance doit être validée via un ticket de changement CHG.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 38,
+        "type": "paragraph",
+        "text": "5 Changements et MEP",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 39,
+        "type": "paragraph",
+        "text": "Les mises en production sont planifiées le mercredi soir, hors période de gel.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 40,
+        "type": "paragraph",
+        "text": "5.1 Référentiel",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 41,
+        "type": "paragraph",
+        "text": "Code source disponible sur GitLab : groupe/cmd-app.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 42,
+        "type": "paragraph",
+        "text": "Les livraisons sont validées via Merge Request avant fusion sur la branche main.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 43,
+        "type": "paragraph",
+        "text": "13.1 Restauration",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 44,
+        "type": "paragraph",
+        "text": "Restaurer la base depuis la dernière sauvegarde via le script restore_cmd.sh.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 45,
+        "type": "paragraph",
+        "text": "13.2 Reconstruction",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 46,
+        "type": "paragraph",
+        "text": "Reconstruire l'environnement à partir du pipeline Terraform 'infra-cmd'.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 47,
+        "type": "paragraph",
+        "text": "13.3 Resynchronisation",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 48,
+        "type": "paragraph",
+        "text": "Relancer le job de resynchronisation JOB_RESYNC_CMD en cas de désynchronisation.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 49,
+        "type": "paragraph",
+        "text": "4.2.2 Assets mainframe",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 50,
+        "type": "paragraph",
+        "text": "Non applicable : la solution ne comporte pas de composants mainframe.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      },
+      {
+        "index": 51,
+        "type": "paragraph",
+        "text": "14 Annexes",
+        "is_heading": true,
+        "level": 1,
+        "is_explanatory": false
+      },
+      {
+        "index": 52,
+        "type": "paragraph",
+        "text": "Contact astreinte : astreinte-cmd@example.com.",
+        "is_heading": false,
+        "level": null,
+        "is_explanatory": false
+      }
+    ],
+    "markdown": "## 1. IDENTIFICATION\nSolution : S20001\nAuteur : Alice Martin\nResponsable : Bob Lefevre\n\n## 2. CONTENU PAR CHAMP CAST'IN\n**[Lien Dossier Archi (DAP…)]**\nhttps://archi.example.com/DAP1001\nDAP1001\n\n**[Schéma Applicatif (ADU…)]**\nhttps://archi.example.com/DAP1001\nADU2002\n\n**[Description Fonctionnelle]**\nLa solution permet la gestion des commandes clients en temps réel.\n\n**[Données de la solution]**\nBase de données Oracle, schéma CMD_PROD.\n\n**[Principes et décisions]**\n(laisser vide)\n\n**[Description Technique]**\nSolution hébergée sur Kubernetes (3 pods), exposée via une API REST.\n\n**[Plage de fonctionnement / maintenance]**\nDisponible 24/7, fenêtre de maintenance le dimanche 02h00-04h00.\n\n**[Supervision]**\nSupervisée par Centreon, sondes HTTP toutes les 5 minutes.\n6.1 Alertes\nAlerte envoyée à l'équipe d'astreinte par email et SMS.\n\n**[Observabilité]**\nTableaux de bord Grafana : taux d'erreur, latence, volumétrie.\n\n**[Log]**\nLogs centralisés dans ELK, niveau INFO par défaut.\n\n**[Sauvegardes]**\nSauvegarde quotidienne de la base à 01h00, conservation 30 jours.\n\n**[Servitudes et ordonnancements]**\nLe job nocturne JOB_EXPORT doit s'exécuter après JOB_CONSOLIDATION.\n\n**[Comptes et services]**\nCompte | Usage\nsvc_cmd_app | Exécution de l'application\nsvc_cmd_batch | Exécution des traitements batch\n\n**[Certificats]**\nCertificat | Échéance\ncmd.prod.example.com | 2027-01-15\n\n**[Liste blanche]**\nAdresse IP | Port | Justification\n10.0.1.5 | 443 | Appel API partenaire\n\n**[Flux]**\nSource | Destination | Protocole | Port\nApp CMD | Base Oracle | TCP | 1521\nApp CMD | API Partenaire | HTTPS | 443\n\n**[Support]**\nActivité | Responsable\nSupervision N1 | Equipe Exploitation\nCorrectif applicatif | Equipe Dev CMD\n\n**[Changement et MEP]**\nToute opération de maintenance doit être validée via un ticket de changement CHG.\n\nLes mises en production sont planifiées le mercredi soir, hors période de gel.\n\n**[Matière (repo)]**\nCode source disponible sur GitLab : groupe/cmd-app.\nLes livraisons sont validées via Merge Request avant fusion sur la branche main.\n\nRéférences \"Merge Request\" trouvées dans le document :\nLes livraisons sont validées via Merge Request avant fusion sur la branche main.\n\n**[Procédure de restauration]**\nRestaurer la base depuis la dernière sauvegarde via le script restore_cmd.sh.\n\n**[Procédure de reconstruction]**\nReconstruire l'environnement à partir du pipeline Terraform 'infra-cmd'.\n\n**[Procédure de resynchronisation]**\nRelancer le job de resynchronisation JOB_RESYNC_CMD en cas de désynchronisation.\n\n**[Informations supplémentaires]**\n4.2.2 Assets mainframe\nNon applicable : la solution ne comporte pas de composants mainframe.\n14 Annexes\nContact astreinte : astreinte-cmd@example.com.\n\nAssets mainframe :\nNon applicable : la solution ne comporte pas de composants mainframe.\n\n## 3. POINTS À VÉRIFIER AUPRÈS DE L'ÉQUIPIER OPS\nRAS"
+  }
+}

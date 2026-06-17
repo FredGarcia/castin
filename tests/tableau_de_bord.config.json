@@ -1,0 +1,7 @@
+{
+  "cible_ece": 0.3,
+  "alerte_taux_acceptation_min": 0.85,
+  "alerte_duree_dex_max_s": 720,
+  "k_promotion_fixture": 5,
+  "fenetre_glissante_n": 200
+}

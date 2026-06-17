@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reprise DEX → CAST'IN — poste assisté</title>
+<style>
+  :root{
+    --bleu-france:#000091; --bleu-clair:#e3e3fd; --rouge:#e1000f;
+    --texte:#1b1b35; --texte-doux:#3a3a55; --gris-bord:#cecece; --gris-fond:#f6f6f6;
+    --blanc:#ffffff; --succes:#18753c; --succes-fond:#dffee6;
+    --alerte:#b34000; --alerte-fond:#fff4e6; --erreur:#ce0500; --erreur-fond:#ffe9e9;
+    --ombre:0 1px 3px rgba(0,0,16,.18); --rayon:6px;
+    --police:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--police);color:var(--texte);background:var(--gris-fond);line-height:1.5}
+  a{color:var(--bleu-france)}
+  h1,h2,h3{line-height:1.25;margin:.2em 0 .4em}
+  h1{font-size:1.35rem} h2{font-size:1.15rem} h3{font-size:1rem}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--bleu-france);color:#fff;padding:.6rem 1rem;z-index:100}
+  .skip:focus{left:.5rem;top:.5rem}
+  :focus-visible{outline:3px solid var(--bleu-france);outline-offset:2px}
+  header[role=banner]{background:var(--blanc);border-bottom:3px solid var(--bleu-france);padding:.7rem 1rem;
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+  header .titre{font-weight:700;color:var(--bleu-france);font-size:1.15rem}
+  header .sep{flex:1}
+  .pastille{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--texte-doux)}
+  .point{width:.7rem;height:.7rem;border-radius:50%;background:var(--gris-bord);display:inline-block}
+  .point.ok{background:var(--succes)} .point.ko{background:var(--erreur)}
+  .champ-role{display:flex;align-items:center;gap:.4rem;font-size:.85rem}
+  select,input,button,textarea{font:inherit}
+  select,input[type=text]{padding:.4rem .5rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);background:#fff;color:var(--texte)}
+  button{cursor:pointer;border:1px solid var(--bleu-france);background:var(--bleu-france);color:#fff;
+    padding:.45rem .8rem;border-radius:var(--rayon);font-weight:600}
+  button.secondaire{background:#fff;color:var(--bleu-france)}
+  button.discret{background:#fff;color:var(--texte);border-color:var(--gris-bord);font-weight:500}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  main{max-width:1500px;margin:0 auto;padding:1rem}
+  [role=tablist]{display:flex;gap:.3rem;border-bottom:1px solid var(--gris-bord);margin-bottom:1rem}
+  [role=tab]{background:transparent;color:var(--texte-doux);border:none;border-bottom:3px solid transparent;border-radius:0;
+    padding:.6rem 1rem;font-weight:600}
+  [role=tab][aria-selected=true]{color:var(--bleu-france);border-bottom-color:var(--bleu-france)}
+  .barre-chargement{display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;background:#fff;border:1px solid var(--gris-bord);
+    border-radius:var(--rayon);padding:1rem;box-shadow:var(--ombre)}
+  .barre-chargement .bloc{display:flex;flex-direction:column;gap:.25rem}
+  .zone-depot{border:2px dashed var(--bleu-france);border-radius:var(--rayon);padding:.7rem 1rem;background:var(--bleu-clair);
+    color:var(--texte);font-size:.9rem}
+  .statut{margin:.6rem 0;min-height:1.4rem;font-size:.9rem}
+  .statut .ok{color:var(--succes)} .alerte-boite{background:var(--erreur-fond);border:1px solid var(--erreur);
+    color:#7a0000;padding:.5rem .8rem;border-radius:var(--rayon)}
+  .espace{display:grid;grid-template-columns:minmax(380px,2fr) 3fr;gap:1rem;align-items:start}
+  @media(max-width:1100px){.espace{grid-template-columns:1fr}}
+  .colonne{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);box-shadow:var(--ombre);
+    padding:.8rem;max-height:78vh;overflow:auto}
+  .ident{background:var(--gris-fond);border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.6rem .8rem;margin-bottom:.8rem;font-size:.9rem}
+  .ident dt{font-weight:700;color:var(--texte-doux)} .ident dd{margin:0 0 .3rem}
+  .groupe-titre{position:sticky;top:0;background:#fff;padding:.3rem 0;border-bottom:1px solid var(--gris-bord);z-index:2}
+  .carte{border:1px solid var(--gris-bord);border-left:6px solid var(--coul,var(--gris-bord));border-radius:var(--rayon);
+    padding:.6rem;margin:.6rem 0;background:#fff}
+  .carte.active{box-shadow:0 0 0 2px var(--bleu-france)}
+  .carte .entete{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .carte .lib{font-weight:700;flex:1;text-align:left;background:none;border:none;color:var(--texte);padding:0;cursor:pointer}
+  .etiq{font-size:.72rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;background:var(--bleu-clair);color:var(--bleu-france);white-space:nowrap}
+  .conf{font-size:.78rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;white-space:nowrap}
+  .conf.elevee{background:var(--succes-fond);color:var(--succes)}
+  .conf.moyenne{background:var(--alerte-fond);color:var(--alerte)}
+  .conf.faible{background:var(--erreur-fond);color:var(--erreur)}
+  .conf.na{background:var(--gris-fond);color:var(--texte-doux)}
+  .jauge{height:.4rem;border-radius:3px;background:var(--gris-fond);margin:.35rem 0;overflow:hidden}
+  .jauge>span{display:block;height:100%;background:var(--coul,var(--bleu-france))}
+  .raison{font-size:.8rem;color:var(--texte-doux);margin:.2rem 0}
+  textarea.contenu{width:100%;min-height:3.2rem;max-height:14rem;resize:vertical;border:1px solid var(--gris-bord);
+    border-radius:var(--rayon);padding:.4rem;font-size:.85rem;background:var(--gris-fond);color:var(--texte)}
+  .actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;align-items:center}
+  .suggestions{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+  .suggestions .puce{font-size:.78rem;background:var(--gris-fond);border:1px solid var(--gris-bord);border-radius:10px;padding:.15rem .5rem;color:var(--texte)}
+  .form-signal{margin-top:.4rem;padding:.5rem;background:var(--gris-fond);border:1px dashed var(--gris-bord);border-radius:var(--rayon);
+    display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-end}
+  .valide-ok{color:var(--succes);font-weight:700;font-size:.82rem}
+  .valide-sig{color:var(--alerte);font-weight:700;font-size:.82rem}
+  /* document annoté */
+  .doc-outils{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem}
+  .legende{display:flex;gap:.4rem;flex-wrap:wrap;font-size:.75rem;margin-bottom:.5rem}
+  .legende .item{display:inline-flex;align-items:center;gap:.3rem}
+  .legende .pal{width:.8rem;height:.8rem;border-radius:2px;border:1px solid #0003}
+  .para{padding:.15rem .4rem;border-radius:3px;font-size:.88rem;margin:.05rem 0;white-space:pre-wrap}
+  .para.titre{font-weight:700;color:var(--bleu-france);margin-top:.5rem}
+  .para.explicatif{color:#8a8aa0;font-style:italic}
+  .para.surligne{border-left:4px solid var(--coul);background:var(--coulfond);padding-left:.5rem}
+  .para .badge-fleche{display:inline-block;font-size:.72rem;font-weight:700;color:#fff;background:var(--coul);
+    border-radius:3px;padding:0 .35rem;margin-right:.4rem}
+  .vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  /* tableau de bord */
+  .cartes-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin:.6rem 0}
+  .kpi{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.7rem;box-shadow:var(--ombre)}
+  .kpi .v{font-size:1.5rem;font-weight:700} .kpi .l{font-size:.8rem;color:var(--texte-doux)}
+  .kpi.bon{border-top:4px solid var(--succes)} .kpi.mauvais{border-top:4px solid var(--erreur)}
+  table{border-collapse:collapse;width:100%;font-size:.85rem;background:#fff}
+  caption{text-align:left;font-weight:700;padding:.3rem 0}
+  th,td{border:1px solid var(--gris-bord);padding:.35rem .5rem;text-align:left}
+  th[scope=col]{background:var(--gris-fond)}
+  .alertes li{color:#7a0000}
+  .panneau{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);box-shadow:var(--ombre);padding:.9rem;margin-bottom:1rem}
+  .replay-modif{border-left:4px solid var(--bleu-france);padding:.3rem .6rem;margin:.3rem 0;background:var(--gris-fond);font-size:.85rem}
+  del{color:#7a0000} ins{color:var(--succes);text-decoration:none;background:var(--succes-fond)}
+  .muet{color:var(--texte-doux);font-size:.85rem}
+  .candidats{border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.4rem .6rem;margin:.4rem 0}
+  .candidats legend{font-size:.82rem;font-weight:700;padding:0 .3rem}
+  .cand-opt{display:grid;grid-template-columns:auto 1fr;gap:.1rem .5rem;align-items:start;padding:.25rem;border-radius:var(--rayon);cursor:pointer}
+  .cand-opt:hover{background:#f4f6ff}
+  .cand-opt.actif{background:#eef2ff;outline:2px solid var(--bleu-france)}
+  .cand-opt input{grid-row:1/3;align-self:center}
+  .cand-titre{font-weight:600}
+  .cand-extrait{grid-column:2;font-size:.8rem}
+  .candidats-info{margin:.4rem 0;font-size:.85rem}
+  .candidats-info summary{cursor:pointer}
+</style>
+
+</head>
+<body>
+<a class="skip" href="#principal">Aller au contenu principal</a>
+<div id="app">
+  <header role="banner">
+    <span class="titre">Reprise DEX → CAST'IN</span>
+    <span class="pastille"><span class="point" :class="backOk?'ok':'ko'"></span>
+      Service : {{ backOk ? 'connecté' : 'déconnecté' }}<span v-if="health"> · règles {{ health.rules_version }}</span></span>
+    <span class="sep"></span>
+    <label class="champ-role" for="role">Rôle opérateur
+      <select id="role" v-model="role">
+        <option value="rodage">Rodage (développeur confirmé)</option>
+        <option value="production">Production</option>
+      </select>
+    </label>
+  </header>
+
+  <main id="principal">
+    <nav aria-label="Sections de l'outil">
+      <div role="tablist" aria-label="Sections">
+        <button role="tab" id="tab-reprise" :aria-selected="onglet==='reprise'" :tabindex="onglet==='reprise'?0:-1"
+                aria-controls="panneau-reprise" @click="onglet='reprise'" @keydown="navOnglets($event)">Reprise assistée</button>
+        <button role="tab" id="tab-dash" :aria-selected="onglet==='dashboard'" :tabindex="onglet==='dashboard'?0:-1"
+                aria-controls="panneau-dash" @click="allerDashboard()" @keydown="navOnglets($event)">Tableau de bord</button>
+      </div>
+    </nav>
+
+    <p class="statut" role="status" aria-live="polite"><span class="ok" v-if="statut">{{ statut }}</span></p>
+    <p class="statut" role="alert" aria-live="assertive" v-if="erreur"><span class="alerte-boite">{{ erreur }}</span></p>
+
+    <!-- ====================== ONGLET REPRISE ====================== -->
+    <section role="tabpanel" id="panneau-reprise" aria-labelledby="tab-reprise" v-show="onglet==='reprise'">
+      <div class="barre-chargement">
+        <div class="bloc">
+          <label for="fichier"><strong>Charger un DEX (.docx)</strong></label>
+          <input id="fichier" type="file" accept=".docx" @change="surFichier($event)">
+        </div>
+        <div class="bloc" style="flex:1;min-width:240px">
+          <label for="chemin">…ou chemin local sur le poste</label>
+          <input id="chemin" type="text" v-model="cheminInput" placeholder="C:\\dossiers\\DEX_S12345_MaSolution.docx">
+        </div>
+        <button class="secondaire" @click="traiterDepuisChemin()" :disabled="!cheminInput || chargement">Traiter le chemin</button>
+        <div class="zone-depot" @dragover.prevent @drop.prevent="surDepot($event)" aria-hidden="true">
+          Glisser-déposer un .docx ici
+        </div>
+      </div>
+
+      <div v-if="resultat" class="espace" style="margin-top:1rem">
+        <!-- Colonne champs -->
+        <div class="colonne" aria-labelledby="t-champs">
+          <h2 id="t-champs">Champs CAST'IN</h2>
+          <dl class="ident">
+            <dt>Solution</dt><dd>{{ resultat.identification.solution || 'Non concerné' }}</dd>
+            <dt>Auteur</dt><dd>{{ resultat.identification.auteur || 'Non concerné' }}</dd>
+            <dt>Responsable</dt><dd>{{ resultat.identification.responsable || 'Non concerné' }}</dd>
+            <dt>Signature de gabarit</dt><dd>{{ resultat.gabarit_signature }}</dd>
+          </dl>
+
+          <template v-for="grp in groupes" :key="grp.tab">
+            <h3 class="groupe-titre">{{ grp.tab }}</h3>
+            <div v-for="key in grp.keys" :key="key" class="carte"
+                 :class="{active:selection===key}"
+                 :style="styleCarte(key)">
+              <div class="entete">
+                <button class="lib" @click="selectionner(key)"
+                        :aria-pressed="selection===key">{{ resultat.champs[key].label }}</button>
+                <span class="etiq">{{ resultat.champs[key].tab }}</span>
+                <span class="conf" :class="classeConf(resultat.champs[key].confiance)">
+                  {{ libelleConf(resultat.champs[key].confiance) }}</span>
+                <span v-if="resultat.champs[key].route_attention" class="conf faible"
+                      title="Routé en Points à vérifier par le seuil de confiance">⚠ à vérifier</span>
+                <span v-if="resultat.champs[key].ambigu" class="conf faible"
+                      title="Plusieurs sections candidates — choisir la bonne section">⚐ ambigu</span>
+              </div>
+              <div class="jauge" v-if="resultat.champs[key].confiance!=null" aria-hidden="true">
+                <span :style="{width:(resultat.champs[key].confiance*100)+'%'}"></span>
+              </div>
+              <p class="raison">{{ resultat.champs[key].raison }}</p>
+              <label class="vh" :for="'c-'+key">Contenu prêt à coller — {{ resultat.champs[key].label }}</label>
+              <textarea class="contenu" :id="'c-'+key" readonly rows="2"
+                        :value="resultat.champs[key].kind==='empty' ? '(laisser vide)' : (contenuAffiche(key) || 'Non concerné')"></textarea>
+
+              <fieldset class="candidats" v-if="resultat.champs[key].kind==='text' && resultat.champs[key].candidats.length>=2">
+                <legend>Section source — {{ resultat.champs[key].candidats.length }} candidates
+                  <span v-if="resultat.champs[key].ambigu" class="conf faible">ambigu</span></legend>
+                <label v-for="c in resultat.champs[key].candidats" :key="c.index" class="cand-opt"
+                       :class="{actif:(choix[key]!=null?choix[key]:resultat.champs[key].selection_moteur)===c.index}">
+                  <input type="radio" :name="'cand-'+key" :value="c.index"
+                         :checked="(choix[key]!=null?choix[key]:resultat.champs[key].selection_moteur)===c.index"
+                         @change="choisirCandidat(key,c)">
+                  <span class="cand-titre">{{ c.titre }}
+                    <span class="muet" style="font-weight:400">— score {{ c.score }}<template v-if="c.index===resultat.champs[key].selection_moteur"> · section moteur</template></span>
+                  </span>
+                  <span class="cand-extrait">{{ c.extrait || '(section vide)' }}</span>
+                </label>
+                <p v-if="choixDiffere(key)" class="muet">Section choisie ≠ section moteur → enregistrée comme <strong>mauvaise_section</strong> (avec correction).</p>
+              </fieldset>
+              <details class="candidats-info" v-else-if="resultat.champs[key].candidats.length>=2">
+                <summary>{{ resultat.champs[key].candidats.length }} sections détectées (agrégées par le moteur)</summary>
+                <ul><li v-for="c in resultat.champs[key].candidats" :key="c.index"><strong>{{ c.titre }}</strong> — {{ c.extrait || '(vide)' }}</li></ul>
+              </details>
+
+              <div class="suggestions" v-if="resultat.champs[key].suggestions && resultat.champs[key].suggestions.length">
+                <span class="muet">Suggestions :</span>
+                <button class="puce" v-for="s in resultat.champs[key].suggestions" :key="s.index"
+                        @click="allerParagraphe(s.index)"
+                        :title="'Aller au titre (proximité '+s.score+')'">{{ s.titre }} ({{ s.score }})</button>
+              </div>
+
+              <div class="actions" v-if="resultat.champs[key].kind!=='empty'">
+                <button class="secondaire" @click="copier(key)"
+                        :aria-label="'Copier le contenu du champ '+resultat.champs[key].label">Copier</button>
+                <template v-if="choixDiffere(key)">
+                  <button @click="confirmerSection(key)">Confirmer la section choisie</button>
+                  <button class="discret" @click="reinitChoix(key)">↺ section moteur</button>
+                </template>
+                <template v-else>
+                  <button class="discret" @click="valider(key,'accepte')">Accepter</button>
+                  <button class="discret" @click="ouvrirSignalement(key)">Signaler…</button>
+                </template>
+                <span class="valide-ok" v-if="etat(key).envoye==='accepte'" role="status">✓ accepté</span>
+                <span class="valide-sig" v-if="etat(key).envoye==='signale'" role="status">⚑ signalé ({{ etat(key).type }})</span>
+              </div>
+
+              <div class="form-signal" v-if="etat(key).formulaire">
+                <label :for="'ty-'+key">Type
+                  <select :id="'ty-'+key" v-model="etat(key).type">
+                    <option v-for="t in taxonomie" :key="t.v" :value="t.v">{{ t.l }}</option>
+                  </select>
+                </label>
+                <label :for="'co-'+key" style="flex:1;min-width:160px">Correction (facultatif)
+                  <input :id="'co-'+key" type="text" v-model="etat(key).correction" placeholder="ex. section attendue, passage…">
+                </label>
+                <button @click="envoyerSignalement(key)">Envoyer le signalement</button>
+                <button class="discret" @click="etat(key).formulaire=false">Annuler</button>
+              </div>
+            </div>
+          </template>
+
+          <h3>Points à vérifier auprès de l'Équipier Ops</h3>
+          <ul v-if="resultat.points_a_verifier.length"><li v-for="(p,i) in resultat.points_a_verifier" :key="i">{{ p }}</li></ul>
+          <p v-else class="muet">RAS</p>
+        </div>
+
+        <!-- Colonne document annoté -->
+        <div class="colonne" aria-labelledby="t-doc">
+          <h2 id="t-doc">Document annoté (réalité augmentée)</h2>
+          <div class="doc-outils">
+            <label><input type="checkbox" v-model="toutAnnoter"> Afficher tous les surlignages</label>
+            <span class="muet" v-if="selection">Champ sélectionné : <strong>{{ resultat.champs[selection].label }}</strong></span>
+          </div>
+          <div class="legende" v-if="legende.length">
+            <span class="item" v-for="l in legende" :key="l.key">
+              <span class="pal" :style="{background:l.coul}"></span>{{ resultat.champs[l.key].label }}</span>
+          </div>
+          <div>
+            <div v-for="d in resultat.document" :key="d.index" :id="'p-'+d.index"
+                 class="para"
+                 :class="{titre:d.is_heading, explicatif:d.is_explanatory, surligne: surlignage(d.index).actif}"
+                 :style="surlignage(d.index).style">
+              <span class="badge-fleche" v-for="(lab,li) in surlignage(d.index).labels" :key="li">⟶ {{ lab }}</span>
+              {{ d.text || '·' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <p v-else class="muet" style="margin-top:1rem">Aucun DEX chargé. Choisissez un fichier ou saisissez un chemin local.<br/><br/>
+      Nouvel onglet "historique" ajouter un tableau de l'historique des DEX analysés par heure de passage avec le nombre par % de confiance et nombre de points à vérifier<br/>
+      Dans l'onglet "Reprise assistée" rendre les cartes rétractables genre accordéon ou bien minimisables<br/>
+      Dans les cartes, les suggestions à cliquer ne sont pas encore implémentées<br/>
+      Dans les cartes, le bouton "signaler" n'est pas encore fonctionnel il faut le diriger vers le mail info@example<br/>
+      </p>
+    
+      </section>
+
+    <!-- ====================== ONGLET TABLEAU DE BORD ====================== -->
+    <section role="tabpanel" id="panneau-dash" aria-labelledby="tab-dash" v-show="onglet==='dashboard'">
+      <div class="panneau">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <h2 style="margin:0">Calibration et qualité</h2>
+          <span v-if="metriques && metriques.calibration && metriques.calibration.actif" class="conf elevee"
+            title="Carte isotonique active (versionnée)">Calibration active · v{{ metriques.calibration.rules_version }}
+            <template v-if="metriques.calibration.seuil_routage>0"> · seuil routage {{ metriques.calibration.seuil_routage }}</template></span>
+          <span v-else-if="metriques" class="conf na">Calibration inactive</span>
+          <button class="secondaire" @click="chargerMetriques()">Rafraîchir</button>
+          <label for="ece">Cible ECE (ajustable)
+            <input id="ece" type="text" inputmode="decimal" v-model="cibleEceInput" style="width:5rem">
+          </label>
+          <button class="discret" @click="enregistrerCible()">Enregistrer la cible</button>
+        </div>
+
+        <div v-if="metriques">
+          <div class="cartes-kpi">
+            <div class="kpi"><div class="v">{{ metriques.n_evenements }}</div><div class="l">Validations enregistrées</div></div>
+            <div class="kpi"><div class="v">{{ fmt(metriques.brier_global) }}</div><div class="l">Score de Brier (plus bas = mieux)</div></div>
+            <div class="kpi" :class="classeEce">
+              <div class="v">{{ fmt(metriques.ece) }}</div><div class="l">ECE calibré (cible {{ metriques.cible_ece }})</div></div>
+            <div class="kpi"><div class="v">{{ fmt(metriques.ece_brut) }} → {{ fmt(metriques.ece) }}</div>
+              <div class="l">ECE brut → calibré<span v-if="metriques.amelioration_ece!=null"> ({{ metriques.amelioration_ece>=0?'−':'+' }}{{ Math.abs(metriques.amelioration_ece) }})</span></div></div>
+            <div class="kpi"><div class="v">{{ metriques.debit.median_s!=null ? metriques.debit.median_s+' s' : '—' }}</div><div class="l">Débit médian / DEX</div></div>
+          </div>
+
+          <h3>Alertes</h3>
+          <ul class="alertes" v-if="metriques.alertes.length"><li v-for="(a,i) in metriques.alertes" :key="i">{{ a }}</li></ul>
+          <p v-else class="muet">Aucune alerte.</p>
+
+          <h3>Acceptation par champ</h3>
+          <table>
+            <caption>Taux d'acceptation et Brier, par champ CAST'IN (verdicts humains).</caption>
+            <thead><tr><th scope="col">Champ</th><th scope="col">n</th><th scope="col">Acceptation</th><th scope="col">Brier</th></tr></thead>
+            <tbody>
+              <tr v-for="(m,champ) in metriques.par_champ" :key="champ">
+                <td>{{ champ }}</td><td>{{ m.n }}</td>
+                <td>{{ m.acceptation!=null ? Math.round(m.acceptation*100)+' %' : '—' }}</td>
+                <td>{{ fmt(m.brier) }}</td>
+              </tr>
+              <tr v-if="!Object.keys(metriques.par_champ).length"><td colspan="4" class="muet">Aucune donnée.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Diagramme de fiabilité</h3>
+          <svg viewBox="0 0 320 200" width="320" height="200" role="img"
+               aria-label="Diagramme de fiabilité : acceptation observée par tranche de confiance, comparée à la diagonale de calibration parfaite.">
+            <line x1="40" y1="170" x2="300" y2="170" stroke="#999"></line>
+            <line x1="40" y1="10" x2="40" y2="170" stroke="#999"></line>
+            <line x1="40" y1="170" x2="300" y2="10" stroke="#bbb" stroke-dasharray="4 3"></line>
+            <template v-for="(b,i) in metriques.fiabilite" :key="i">
+              <rect v-if="b.n" :x="40 + i*26 + 4" :y="170 - (b.acceptation*160)" width="18"
+                    :height="b.acceptation*160" :fill="b.acceptation>=b.confiance? '#18753c':'#b34000'"></rect>
+            </template>
+          </svg>
+          <table>
+            <caption class="vh">Données du diagramme de fiabilité</caption>
+            <thead><tr><th scope="col">Tranche confiance</th><th scope="col">n</th><th scope="col">Confiance moy.</th><th scope="col">Acceptation</th></tr></thead>
+            <tbody>
+              <tr v-for="(b,i) in metriques.fiabilite" :key="i" v-show="b.n">
+                <td>{{ b.bin[0] }} – {{ b.bin[1] }}</td><td>{{ b.n }}</td>
+                <td>{{ b.confiance }}</td><td>{{ b.acceptation }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="muet">Aucune métrique pour l'instant. Validez des champs dans l'onglet « Reprise assistée ».</p>
+      </div>
+
+      <div class="panneau">
+        <h2>Calibration isotonique</h2>
+        <p class="muet">Ajuste une carte monotone <em>score brut → acceptation</em> à partir des verdicts.
+          La carte est <strong>candidate</strong> : elle n'est pas activée ici. Après le gate
+          (<code>calibration_check.py</code> + harness), copier <code>regles.candidate.json</code> →
+          <code>regles.json</code> et recharger.</p>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+          <button class="secondaire" @click="analyserCalibration()">Analyser la calibration</button>
+          <button @click="proposerCalibration()" :disabled="!calibrationAnalyse || !calibrationAnalyse.suffisant">
+            Écrire regles.candidate.json</button>
+        </div>
+        <div v-if="calibrationAnalyse" style="margin-top:.7rem">
+          <p v-if="!calibrationAnalyse.suffisant" class="muet">{{ calibrationAnalyse.message }}</p>
+          <div v-else>
+            <div class="cartes-kpi">
+              <div class="kpi"><div class="v">{{ calibrationAnalyse.n }}</div><div class="l">Verdicts exploités</div></div>
+              <div class="kpi" :class="(calibrationAnalyse.gain||0)>=0?'bon':'mauvais'">
+                <div class="v">{{ fmt(calibrationAnalyse.ece_brut) }} → {{ fmt(calibrationAnalyse.ece_estime) }}</div>
+                <div class="l">ECE brut → estimé (in-sample)</div></div>
+              <div class="kpi"><div class="v">v{{ calibrationAnalyse.version_proposee }}</div><div class="l">Version proposée</div></div>
+            </div>
+            <p class="muet">Champs calibrés individuellement :
+              <span v-if="calibrationAnalyse.champs_calibres.length">{{ calibrationAnalyse.champs_calibres.join(', ') }}</span>
+              <span v-else>aucun (volume par champ insuffisant ; carte par défaut appliquée)</span>.</p>
+            <details>
+              <summary>Carte par défaut ({{ calibrationAnalyse.par_defaut.length }} points)</summary>
+              <p class="muet" style="font-family:monospace">{{ JSON.stringify(calibrationAnalyse.par_defaut) }}</p>
+            </details>
+          </div>
+        </div>
+        <p class="statut" role="status" aria-live="polite" v-if="calibrationStatut">{{ calibrationStatut }}</p>
+      </div>
+
+      <div class="panneau">
+        <h2>Replay — mesurer l'amélioration après modification</h2>
+        <p class="muet">Après un patch de règles (édition de <code>regles.json</code> + rechargement),
+          rejouez le DEX courant pour comparer au dernier instantané.</p>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+          <button @click="rejouer()" :disabled="!resultat">Rejouer le DEX courant</button>
+          <button class="discret" @click="rechargerRegles()">Recharger les règles (regles.json)</button>
+          <span class="muet" v-if="!resultat">Chargez d'abord un DEX dans l'onglet « Reprise ».</span>
+        </div>
+
+        <div v-if="replay" style="margin-top:.8rem">
+          <p><strong>Version</strong> : {{ replay.version_avant || '—' }} → {{ replay.version_apres }} ·
+             <strong>Points</strong> : {{ replay.n_points_avant }} → {{ replay.n_points_apres }}
+             <span v-if="!replay.a_un_instantane_precedent" class="muet">(pas d'instantané précédent)</span></p>
+          <h3>Champs modifiés ({{ replay.champs_modifies.length }})</h3>
+          <div v-for="m in replay.champs_modifies" :key="m.champ" class="replay-modif">
+            <strong>{{ m.label }}</strong> — confiance {{ fmt(m.avant.confiance) }} → {{ fmt(m.apres.confiance) }}
+            <div v-if="m.avant.content!==m.apres.content">
+              <del>{{ (m.avant.content||'∅').slice(0,160) }}</del><br><ins>{{ (m.apres.content||'∅').slice(0,160) }}</ins>
+            </div>
+          </div>
+          <p v-if="!replay.champs_modifies.length" class="muet">Aucun champ modifié.</p>
+          <p v-if="replay.points_resolus.length"><strong class="valide-ok">Points résolus :</strong></p>
+          <ul><li v-for="(p,i) in replay.points_resolus" :key="i">{{ p }}</li></ul>
+          <p v-if="replay.points_nouveaux.length"><strong class="valide-sig">Points nouveaux :</strong></p>
+          <ul><li v-for="(p,i) in replay.points_nouveaux" :key="i">{{ p }}</li></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="./vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+createApp({
+  data(){ return {
+    backOk:false, health:null, role:'rodage', onglet:'reprise',
+    cheminInput:'', chargement:false, resultat:null, source:null,
+    selection:null, toutAnnoter:false, etats:{}, choix:{}, debutTs:null,
+    statut:'', erreur:'',
+    metriques:null, cibleEceInput:'', replay:null,
+    calibrationAnalyse:null, calibrationStatut:'',
+    taxonomie:[
+      {v:'section_introuvable',l:'Section introuvable'},
+      {v:'mauvaise_section',l:'Mauvaise section'},
+      {v:'encart_repris',l:'Encart repris à tort'},
+      {v:'contenu_ecarte',l:'Contenu écarté à tort'},
+      {v:'lien_errone',l:'Lien erroné'},
+      {v:'compose_mal_assemble',l:'Composé mal assemblé'},
+      {v:'identification_erronee',l:'Identification erronée'},
+      {v:'parasite_residuel',l:'Parasite résiduel'},
+    ],
+  };},
+  computed:{
+    couleurs(){
+      const out={}; if(!this.resultat) return out;
+      const ks=this.resultat.ordre_champs, n=ks.length||1;
+      ks.forEach((k,i)=>{ const h=Math.round(i*360/n);
+        out[k]={bord:`hsl(${h} 60% 42%)`, fond:`hsl(${h} 82% 95%)`}; });
+      return out;
+    },
+    groupes(){
+      if(!this.resultat) return [];
+      const dd=[],dx=[];
+      this.resultat.ordre_champs.forEach(k=>{ (this.resultat.champs[k].tab==='DEX'?dx:dd).push(k); });
+      return [{tab:'Description détaillée',keys:dd},{tab:'DEX',keys:dx}];
+    },
+    legende(){
+      if(!this.resultat) return [];
+      const set = this.toutAnnoter ? this.resultat.ordre_champs : (this.selection?[this.selection]:[]);
+      return set.filter(k=>this.spansAffiches(k).length)
+                .map(k=>({key:k, coul:this.couleurs[k].bord}));
+    },
+    classeEce(){ if(!this.metriques||this.metriques.ece==null) return '';
+      return this.metriques.ece<=this.metriques.cible_ece ? 'bon':'mauvais'; },
+  },
+  methods:{
+    async api(method,path,body){
+      const opt={method,headers:{'Content-Type':'application/json'}};
+      if(body!==undefined) opt.body=JSON.stringify(body);
+      const r=await fetch(path,opt);
+      const j=await r.json().catch(()=>({error:'réponse illisible'}));
+      if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+      return j;
+    },
+    async sante(){ try{ this.health=await this.api('GET','/api/health'); this.backOk=true; }
+      catch(e){ this.backOk=false; } },
+    info(m){ this.statut=m; this.erreur=''; },
+    err(e){ this.erreur=(e&&e.message)||String(e); },
+    surFichier(ev){ const f=ev.target.files&&ev.target.files[0]; if(f) this.lireFichier(f); },
+    surDepot(ev){ const f=ev.dataTransfer.files&&ev.dataTransfer.files[0];
+      if(f){ if(!f.name.toLowerCase().endsWith('.docx')){ this.err('Le fichier doit être un .docx.'); return;} this.lireFichier(f);} },
+    lireFichier(f){ const rd=new FileReader();
+      rd.onload=()=>{ const b64=String(rd.result).split(',')[1];
+        this.source={filename:f.name, content_base64:b64}; this.traiter(); };
+      rd.onerror=()=>this.err('Lecture du fichier impossible.'); rd.readAsDataURL(f); },
+    traiterDepuisChemin(){ this.source={path:this.cheminInput.trim()}; this.traiter(); },
+    async traiter(){
+      this.chargement=true; this.info('Traitement en cours…'); this.replay=null;
+      try{
+        this.resultat=await this.api('POST','/api/process-dex', this.source);
+        this.etats={}; this.choix={};
+        this.resultat.ordre_champs.forEach(k=>{ this.etats[k]={formulaire:false,type:'section_introuvable',correction:'',envoye:null}; });
+        this.debutTs=Date.now();
+        this.selection=this.resultat.ordre_champs.find(k=>this.resultat.champs[k].source_spans.length)||null;
+        const pts=this.resultat.points_a_verifier.length;
+        this.info(`DEX ${this.resultat.identification.solution||''} traité — ${pts} point(s) à vérifier.`);
+        this.sante();
+      }catch(e){ this.err(e); this.resultat=null; } finally{ this.chargement=false; }
+    },
+    ecoule(){ return this.debutTs ? Math.round((Date.now()-this.debutTs)/1000) : null; },
+    styleCarte(key){ const c=this.couleurs[key]||{}; return {'--coul':c.bord,'--coulfond':c.fond}; },
+    selectionner(key){ this.selection=key; this.allerPremierSpan(key); },
+    allerPremierSpan(key){ const sp=this.spansAffiches(key);
+      if(sp.length) this.allerParagraphe(sp[0][0]); },
+    // --- Désambiguïsation : spans/contenu affichés selon la section choisie ---
+    spansAffiches(key){ const c=this.resultat.champs[key]; const sel=this.choix[key];
+      if(sel!=null && sel!==c.selection_moteur && c.kind==='text'){
+        const cand=(c.candidats||[]).find(x=>x.index===sel);
+        if(cand&&cand.span) return [cand.span];
+      }
+      return c.source_spans; },
+    contenuAffiche(key){ const c=this.resultat.champs[key]; const sel=this.choix[key];
+      if(sel!=null && sel!==c.selection_moteur && c.kind==='text'){
+        const cand=(c.candidats||[]).find(x=>x.index===sel);
+        if(cand&&cand.contenu!=null) return cand.contenu;
+      }
+      return c.content; },
+    choixDiffere(key){ const c=this.resultat.champs[key]; const sel=this.choix[key];
+      return sel!=null && sel!==c.selection_moteur; },
+    choisirCandidat(key,c){ this.choix={...this.choix,[key]:c.index}; this.selection=key;
+      if(c.span) this.allerParagraphe(c.span[0]); },
+    reinitChoix(key){ const m={...this.choix}; delete m[key]; this.choix=m; this.selectionner(key); },
+    confirmerSection(key){ const c=this.resultat.champs[key]; const sel=this.choix[key];
+      const choisi=(c.candidats||[]).find(x=>x.index===sel)||{};
+      const moteur=(c.candidats||[]).find(x=>x.index===c.selection_moteur)||{};
+      this.valider(key,'signale','mauvaise_section',{
+        section_choisie:{index:sel,titre:choisi.titre},
+        section_moteur:{index:c.selection_moteur,titre:moteur.titre},
+      }); },
+    allerParagraphe(idx){ this.$nextTick(()=>{ const el=document.getElementById('p-'+idx);
+      if(el) el.scrollIntoView({block:'center', behavior:'smooth'}); }); },
+    surlignage(idx){
+      if(!this.resultat) return {actif:false,labels:[],style:{}};
+      const set = this.toutAnnoter ? this.resultat.ordre_champs : (this.selection?[this.selection]:[]);
+      let coul=null, fond=null; const labels=[];
+      for(const k of set){
+        for(const [s,e] of this.spansAffiches(k)){
+          if(idx>=s && idx<e){ const c=this.couleurs[k];
+            if(!coul){coul=c.bord;fond=c.fond;}
+            if(idx===s) labels.push(this.resultat.champs[k].label);
+          }
+        }
+      }
+      return {actif:!!coul, labels, style:coul?{'--coul':coul,'--coulfond':fond}:{}};
+    },
+    classeConf(c){ if(c==null) return 'na'; if(c>=0.8) return 'elevee'; if(c>=0.5) return 'moyenne'; return 'faible'; },
+    libelleConf(c){ if(c==null) return 'champ vide';
+      const p=Math.round(c*100)+' %'; if(c>=0.8) return 'confiance élevée '+p;
+      if(c>=0.5) return 'confiance moyenne '+p; return 'confiance faible '+p; },
+    etat(key){ if(!this.etats[key]) this.etats[key]={formulaire:false,type:'section_introuvable',correction:'',envoye:null};
+      return this.etats[key]; },
+    ouvrirSignalement(key){ this.etat(key).formulaire=true; },
+    async copier(key){
+      const txt=this.contenuAffiche(key)||'';
+      try{ await navigator.clipboard.writeText(txt); }
+      catch(e){ const ta=document.getElementById('c-'+key); ta.select(); try{document.execCommand('copy');}catch(_){} }
+      this.info('Copié : '+this.resultat.champs[key].label);
+    },
+    async valider(key,verdict,type,correction){
+      try{
+        await this.api('POST','/api/validate',{
+          dex_id:this.resultat.identification.solution||this.resultat.gabarit_signature,
+          onglet:this.resultat.champs[key].tab==='DEX'?'dex':'description_detaillee',
+          champ:key, confiance:this.resultat.champs[key].confiance,
+          score_brut:this.resultat.champs[key].score_brut, verdict,
+          type_signalement:type||null, correction:correction||null,
+          gabarit_signature:this.resultat.gabarit_signature,
+          duree_traitement_s:this.ecoule(), operateur_role:this.role,
+        });
+        this.etat(key).envoye=verdict;
+        this.info((verdict==='accepte'?'Accepté : ':'Signalé : ')+this.resultat.champs[key].label);
+        this.chargerMetriques();
+      }catch(e){ this.err(e); }
+    },
+    envoyerSignalement(key){ const s=this.etat(key);
+      this.valider(key,'signale',s.type, s.correction? {commentaire:s.correction}:null); s.formulaire=false; },
+    allerDashboard(){ this.onglet='dashboard'; this.chargerMetriques(); },
+    async chargerMetriques(){ try{ this.metriques=await this.api('GET','/api/metrics');
+      if(this.cibleEceInput==='') this.cibleEceInput=String(this.metriques.cible_ece); }catch(e){ this.err(e); } },
+    async enregistrerCible(){ const v=parseFloat(String(this.cibleEceInput).replace(',','.'));
+      if(isNaN(v)||v<0||v>1){ this.err('La cible ECE doit être un nombre entre 0 et 1.'); return; }
+      try{ await this.api('POST','/api/config',{cible_ece:v}); this.info('Cible ECE enregistrée : '+v); this.chargerMetriques(); }
+      catch(e){ this.err(e); } },
+    async rechargerRegles(){ try{ const r=await this.api('POST','/api/rules/reload'); this.info('Règles rechargées (version '+r.rules_version+').'); this.sante(); }
+      catch(e){ this.err(e); } },
+    async analyserCalibration(){ this.calibrationStatut='';
+      try{ this.calibrationAnalyse=await this.api('GET','/api/calibration');
+        this.calibrationStatut = this.calibrationAnalyse.suffisant
+          ? `Carte ajustée sur ${this.calibrationAnalyse.n} verdicts.`
+          : ''; }
+      catch(e){ this.err(e); } },
+    async proposerCalibration(){ try{ const r=await this.api('POST','/api/calibration/proposer');
+        this.calibrationStatut = `Candidate écrite : ${r.chemin} (v${r.version_proposee}). ${r.rappel}`; }
+      catch(e){ this.err(e); } },
+    async rejouer(){ if(!this.resultat) return;      try{ const body=Object.assign({dex_id:this.resultat.identification.solution||this.resultat.gabarit_signature}, this.source);
+        this.replay=await this.api('POST','/api/replay', body);
+        this.info('Replay effectué.'); this.chargerMetriques();
+      }catch(e){ this.err(e); } },
+    fmt(x){ return (x==null)?'—':x; },
+    navOnglets(ev){ const ordre=['reprise','dashboard']; const i=ordre.indexOf(this.onglet);
+      if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ ev.preventDefault();
+        const j=(i+1)%2; const cible=ordre[j];
+        if(cible==='dashboard') this.allerDashboard(); else this.onglet='reprise';
+        this.$nextTick(()=>{ const id=cible==='reprise'?'tab-reprise':'tab-dash'; const el=document.getElementById(id); if(el) el.focus(); });
+      } },
+  },
+  mounted(){ this.sante(); setInterval(this.sante, 15000); },
+}).mount('#app');
+</script>
+</body>
+</html>

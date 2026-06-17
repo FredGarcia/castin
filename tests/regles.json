@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "description": "Overlay de règles versionné. 'extra_keywords' enrichit ADDITIVEMENT le lexique de repérage par champ (règle 1). Tout changement doit re-passer le harness avant publication.",
+  "extra_keywords": {},
+  "confiance": {
+    "base_text": 0.9,
+    "base_link": 0.8,
+    "base_compose": 0.75,
+    "malus_match_faible": 0.1,
+    "malus_contenu_court": 0.15,
+    "seuil_contenu_court": 15,
+    "optionnel_absent": 0.85,
+    "requis_absent": 0.3,
+    "plafond_si_signale": 0.4
+  },
+  "seuil_routage": 0.0,
+  "calibration": {
+    "actif": false,
+    "min_n_par_champ": 30,
+    "par_defaut": [],
+    "par_champ": {}
+  }
+}
