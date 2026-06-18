@@ -14,7 +14,7 @@ venv/
 .vscode/
 .idea/
 *.code-workspace
-
+tests/runs/
 # OS
 .DS_Store
 Thumbs.db
