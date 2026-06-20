@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reprise DEX → CAST'IN — poste assisté</title>
+<style>
+  :root{
+    --bleu-france:#000091; --bleu-clair:#e3e3fd; --rouge:#e1000f;
+    --texte:#1b1b35; --texte-doux:#3a3a55; --gris-bord:#cecece; --gris-fond:#f6f6f6;
+    --blanc:#ffffff; --succes:#18753c; --succes-fond:#dffee6;
+    --alerte:#b34000; --alerte-fond:#fff4e6; --erreur:#ce0500; --erreur-fond:#ffe9e9;
+    --ombre:0 1px 3px rgba(0,0,16,.18); --rayon:6px;
+    --police:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--police);color:var(--texte);background:var(--gris-fond);line-height:1.5}
+  a{color:var(--bleu-france)}
+  h1,h2,h3{line-height:1.25;margin:.2em 0 .4em}
+  h1{font-size:1.35rem} h2{font-size:1.15rem} h3{font-size:1rem}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--bleu-france);color:#fff;padding:.6rem 1rem;z-index:100}
+  .skip:focus{left:.5rem;top:.5rem}
+  :focus-visible{outline:3px solid var(--bleu-france);outline-offset:2px}
+  header[role=banner]{background:var(--blanc);border-bottom:3px solid var(--bleu-france);padding:.7rem 1rem;
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+  header .titre{font-weight:700;color:var(--bleu-france);font-size:1.15rem}
+  header .sep{flex:1}
+  .pastille{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--texte-doux)}
+  .point{width:.7rem;height:.7rem;border-radius:50%;background:var(--gris-bord);display:inline-block}
+  .point.ok{background:var(--succes)} .point.ko{background:var(--erreur)}
+  .champ-role{display:flex;align-items:center;gap:.4rem;font-size:.85rem}
+  select,input,button,textarea{font:inherit}
+  select,input[type=text]{padding:.4rem .5rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);background:#fff;color:var(--texte)}
+  button{cursor:pointer;border:1px solid var(--bleu-france);background:var(--bleu-france);color:#fff;
+    padding:.45rem .8rem;border-radius:var(--rayon);font-weight:600}
+  button.secondaire{background:#fff;color:var(--bleu-france)}
+  button.discret{background:#fff;color:var(--texte);border-color:var(--gris-bord);font-weight:500}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  main{max-width:1500px;margin:0 auto;padding:1rem}
+  [role=tablist]{display:flex;gap:.3rem;border-bottom:1px solid var(--gris-bord);margin-bottom:1rem}
+  [role=tab]{background:transparent;color:var(--texte-doux);border:none;border-bottom:3px solid transparent;border-radius:0;
+    padding:.6rem 1rem;font-weight:600}
+  [role=tab][aria-selected=true]{color:var(--bleu-france);border-bottom-color:var(--bleu-france)}
+  .barre-chargement{display:flex;gap:.6rem;align-items:flex-end;flex-wrap:wrap;background:#fff;border:1px solid var(--gris-bord);
+    border-radius:var(--rayon);padding:1rem;box-shadow:var(--ombre)}
+  .barre-chargement .bloc{display:flex;flex-direction:column;gap:.25rem}
+  .zone-depot{border:2px dashed var(--bleu-france);border-radius:var(--rayon);padding:.7rem 1rem;background:var(--bleu-clair);
+    color:var(--texte);font-size:.9rem}
+  .statut{margin:.6rem 0;min-height:1.4rem;font-size:.9rem}
+  .statut .ok{color:var(--succes)} .alerte-boite{background:var(--erreur-fond);border:1px solid var(--erreur);
+    color:#7a0000;padding:.5rem .8rem;border-radius:var(--rayon)}
+  .espace{display:grid;grid-template-columns:minmax(380px,2fr) 3fr;gap:1rem;align-items:start}
+  @media(max-width:1100px){.espace{grid-template-columns:1fr}}
+  .colonne{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);box-shadow:var(--ombre);
+    padding:.8rem;max-height:78vh;overflow:auto}
+  .ident{background:var(--gris-fond);border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.6rem .8rem;margin-bottom:.8rem;font-size:.9rem}
+  .ident dt{font-weight:700;color:var(--texte-doux)} .ident dd{margin:0 0 .3rem}
+  .groupe-titre{position:sticky;top:0;background:#fff;padding:.3rem 0;border-bottom:1px solid var(--gris-bord);z-index:2}
+  .carte{border:1px solid var(--gris-bord);border-left:6px solid var(--coul,var(--gris-bord));border-radius:var(--rayon);
+    padding:.6rem;margin:.6rem 0;background:#fff}
+  .carte.active{box-shadow:0 0 0 2px var(--bleu-france)}
+  .carte .entete{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .carte .lib{font-weight:700;flex:1;text-align:left;background:none;border:none;color:var(--texte);padding:0;cursor:pointer}
+  .etiq{font-size:.72rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;background:var(--bleu-clair);color:var(--bleu-france);white-space:nowrap}
+  .conf{font-size:.78rem;font-weight:700;padding:.1rem .45rem;border-radius:10px;white-space:nowrap}
+  .conf.elevee{background:var(--succes-fond);color:var(--succes)}
+  .conf.moyenne{background:var(--alerte-fond);color:var(--alerte)}
+  .conf.faible{background:var(--erreur-fond);color:var(--erreur)}
+  .conf.na{background:var(--gris-fond);color:var(--texte-doux)}
+  .jauge{height:.4rem;border-radius:3px;background:var(--gris-fond);margin:.35rem 0;overflow:hidden}
+  .jauge>span{display:block;height:100%;background:var(--coul,var(--bleu-france))}
+  .raison{font-size:.8rem;color:var(--texte-doux);margin:.2rem 0}
+  textarea.contenu{width:100%;min-height:3.2rem;max-height:14rem;resize:vertical;border:1px solid var(--gris-bord);
+    border-radius:var(--rayon);padding:.4rem;font-size:.85rem;background:var(--gris-fond);color:var(--texte)}
+  .actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;align-items:center}
+  .suggestions{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+  .suggestions .puce{font-size:.78rem;background:var(--gris-fond);border:1px solid var(--gris-bord);border-radius:10px;padding:.15rem .5rem;color:var(--texte)}
+  .form-signal{margin-top:.4rem;padding:.5rem;background:var(--gris-fond);border:1px dashed var(--gris-bord);border-radius:var(--rayon);
+    display:flex;gap:.4rem;flex-wrap:wrap;align-items:flex-end}
+  .valide-ok{color:var(--succes);font-weight:700;font-size:.82rem}
+  .valide-sig{color:var(--alerte);font-weight:700;font-size:.82rem}
+  /* document annoté */
+  .doc-outils{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem}
+  .legende{display:flex;gap:.4rem;flex-wrap:wrap;font-size:.75rem;margin-bottom:.5rem}
+  .legende .item{display:inline-flex;align-items:center;gap:.3rem}
+  .legende .pal{width:.8rem;height:.8rem;border-radius:2px;border:1px solid #0003}
+  .para{padding:.15rem .4rem;border-radius:3px;font-size:.88rem;margin:.05rem 0;white-space:pre-wrap}
+  .para.titre{font-weight:700;color:var(--bleu-france);margin-top:.5rem}
+  .para.explicatif{color:#8a8aa0;font-style:italic}
+  .para.surligne{border-left:4px solid var(--coul);background:var(--coulfond);padding-left:.5rem}
+  .para .badge-fleche{display:inline-block;font-size:.72rem;font-weight:700;color:#fff;background:var(--coul);
+    border-radius:3px;padding:0 .35rem;margin-right:.4rem}
+  .vh{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  /* tableau de bord */
+  .cartes-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin:.6rem 0}
+  .kpi{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.7rem;box-shadow:var(--ombre)}
+  .kpi .v{font-size:1.5rem;font-weight:700} .kpi .l{font-size:.8rem;color:var(--texte-doux)}
+  .kpi.bon{border-top:4px solid var(--succes)} .kpi.mauvais{border-top:4px solid var(--erreur)}
+  table{border-collapse:collapse;width:100%;font-size:.85rem;background:#fff}
+  caption{text-align:left;font-weight:700;padding:.3rem 0}
+  th,td{border:1px solid var(--gris-bord);padding:.35rem .5rem;text-align:left}
+  th[scope=col]{background:var(--gris-fond)}
+  .alertes li{color:#7a0000}
+  .panneau{background:#fff;border:1px solid var(--gris-bord);border-radius:var(--rayon);box-shadow:var(--ombre);padding:.9rem;margin-bottom:1rem}
+  .replay-modif{border-left:4px solid var(--bleu-france);padding:.3rem .6rem;margin:.3rem 0;background:var(--gris-fond);font-size:.85rem}
+  del{color:#7a0000} ins{color:var(--succes);text-decoration:none;background:var(--succes-fond)}
+  .muet{color:var(--texte-doux);font-size:.85rem}
+  .candidats{border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.4rem .6rem;margin:.4rem 0}
+  .candidats legend{font-size:.82rem;font-weight:700;padding:0 .3rem}
+  .cand-opt{display:grid;grid-template-columns:auto 1fr;gap:.1rem .5rem;align-items:start;padding:.25rem;border-radius:var(--rayon);cursor:pointer}
+  .cand-opt:hover{background:#f4f6ff}
+  .cand-opt.actif{background:#eef2ff;outline:2px solid var(--bleu-france)}
+  .cand-opt input{grid-row:1/3;align-self:center}
+  .cand-titre{font-weight:600}
+  .cand-extrait{grid-column:2;font-size:.8rem}
+  .candidats-info{margin:.4rem 0;font-size:.85rem}
+  .candidats-info summary{cursor:pointer}
+  .chevron{border:0;background:transparent;cursor:pointer;font-size:.95rem;line-height:1;padding:.1rem .35rem;color:var(--bleu-france);border-radius:6px}
+  .chevron:hover{background:#eef2ff}
+  .corps{margin-top:.25rem}
+  table.hist{border-collapse:collapse;width:100%;font-size:.86rem;margin:.3rem 0 1rem}
+  table.hist th,table.hist td{border:1px solid var(--gris-bord);padding:.3rem .5rem;text-align:left}
+  table.hist thead th{background:#f4f6ff;position:sticky;top:0}
+  table.hist td.num,table.hist th.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.hist tbody tr:nth-child(even){background:#fafbff}
+  table.hist .tri{background:none;border:0;font:inherit;font-weight:700;cursor:pointer;color:var(--texte);padding:0;text-align:left;width:100%}
+  table.hist .tri:hover{text-decoration:underline}
+  table.hist .tri:focus-visible{outline:2px solid var(--bleu-france);outline-offset:2px}
+  table.hist code{font-size:.8rem}
+  .conf-e{color:#0a6b2e}.conf-m{color:#8a6d00}.conf-f{color:#a10b0b}
+  .admin-form{display:flex;flex-direction:column;gap:.7rem;max-width:680px}
+  .admin-form label{display:flex;flex-direction:column;gap:.25rem;font-weight:600}
+  .admin-form input,.admin-form textarea{font:inherit;padding:.4rem .5rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);width:100%}
+  .apercu-corps{white-space:pre-wrap;background:#f6f8ff;border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.5rem;font-size:.85rem}
+  .modale-fond{position:fixed;inset:0;background:rgba(20,25,40,.45);display:flex;align-items:center;justify-content:center;padding:1rem;z-index:1000}
+  .modale{background:#fff;border-radius:10px;padding:1rem 1.2rem;max-width:680px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+  .modale label{display:flex;flex-direction:column;gap:.25rem;font-weight:600;margin:.5rem 0}
+  .modale input,.modale textarea{font:inherit;padding:.4rem .5rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);width:100%}
+  .arbre{list-style:none;padding-left:0}
+  .arbre>li{margin:.4rem 0;padding-left:.2rem}
+  .arbre ul{list-style:none;padding-left:1.1rem;border-left:2px solid var(--gris-bord);margin:.3rem 0}
+  .arbre-champ{padding:.2rem 0}
+  .arbre-sugg{padding:.4rem .5rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);margin:.35rem 0}
+  .arbre-sugg.cible{outline:3px solid var(--bleu-france);background:#eef2ff}
+  .sugg-texte{font-size:.86rem;margin:.3rem 0}
+  .bascule{display:flex;align-items:flex-start;gap:.5rem;font-weight:600}
+  .bascule input{margin-top:.2rem}
+  .num-intitule{color:var(--bleu-france);font-weight:700}
+  table.dico{border-collapse:collapse;width:100%;font-size:.86rem;margin:.3rem 0 1rem}
+  table.dico th,table.dico td{border:1px solid var(--gris-bord);padding:.35rem .5rem;text-align:left;vertical-align:top}
+  table.dico thead th{background:#f4f6ff;position:sticky;top:0}
+  table.dico td.num,table.dico th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  table.dico tbody tr:nth-child(even){background:#fafbff}
+  table.dico tr.cible{outline:3px solid var(--bleu-france);background:#eef2ff}
+  input.ord{width:4.5rem;font:inherit;padding:.2rem .3rem;border:1px solid var(--gris-bord);border-radius:var(--rayon);text-align:right}
+  table.dico input.cat{width:9rem;font:inherit;padding:.2rem .3rem;border:1px solid var(--gris-bord);border-radius:var(--rayon)}
+  table.dico input.intitule{width:100%;min-width:11rem;font:inherit;padding:.2rem .3rem;border:1px solid var(--gris-bord);border-radius:var(--rayon)}
+  table.dico input.titre-prop{width:100%;min-width:11rem;font:inherit;padding:.2rem .3rem;border:1px solid var(--gris-bord);border-radius:var(--rayon)}
+  .lien-nombre{background:none;border:0;font:inherit;color:var(--bleu-france);cursor:pointer;padding:0;text-decoration:underline;font-variant-numeric:tabular-nums}
+  .lien-nombre:hover{text-decoration:none}
+  .lien-nombre:focus-visible{outline:2px solid var(--bleu-france);outline-offset:2px}
+  table.dico .tri{background:none;border:0;font:inherit;font-weight:700;cursor:pointer;color:var(--texte);padding:0;text-align:left;width:100%}
+  table.dico .tri:hover{text-decoration:underline}
+  table.dico .tri:focus-visible{outline:2px solid var(--bleu-france);outline-offset:2px}
+  ul.dico-sugg{list-style:none;padding-left:0;margin:0}
+  ul.dico-sugg li{margin:.2rem 0}
+  .dico-action{background:#f6f8ff;border:1px solid var(--gris-bord);border-radius:var(--rayon);padding:.5rem .7rem;font-size:.9rem}
+</style>
+
+</head>
+<body>
+<a class="skip" href="#principal">Aller au contenu principal</a>
+<div id="app">
+  <header role="banner">
+    <span class="titre">Reprise DEX → CAST'IN</span>
+    <span class="pastille"><span class="point" :class="backOk?'ok':'ko'"></span>
+      Service : {{ backOk ? 'connecté' : 'déconnecté' }}<span v-if="health"> · règles {{ health.rules_version }}</span></span>
+    <span class="sep"></span>
+    <label class="champ-role" for="role">Rôle opérateur
+      <select id="role" v-model="role">
+        <option value="rodage">Rodage (développeur confirmé)</option>
+        <option value="production">Production</option>
+      </select>
+    </label>
+  </header>
+
+  <main id="principal">
+    <nav aria-label="Sections de l'outil">
+      <div role="tablist" aria-label="Sections">
+        <button role="tab" id="tab-reprise" :aria-selected="onglet==='reprise'" :tabindex="onglet==='reprise'?0:-1"
+                aria-controls="panneau-reprise" @click="onglet='reprise'" @keydown="navOnglets($event)">Reprise assistée</button>
+        <button role="tab" id="tab-dico" :aria-selected="onglet==='dictionnaire'" :tabindex="onglet==='dictionnaire'?0:-1"
+                aria-controls="panneau-dico" @click="allerDictionnaire()" @keydown="navOnglets($event)">Dictionnaire</button>
+        <button role="tab" id="tab-dash" :aria-selected="onglet==='dashboard'" :tabindex="onglet==='dashboard'?0:-1"
+                aria-controls="panneau-dash" @click="allerDashboard()" @keydown="navOnglets($event)">Tableau de bord</button>
+        <button role="tab" id="tab-hist" :aria-selected="onglet==='historique'" :tabindex="onglet==='historique'?0:-1"
+                aria-controls="panneau-hist" @click="allerHistorique()" @keydown="navOnglets($event)">Historique</button>
+        <button role="tab" id="tab-admin" :aria-selected="onglet==='admin'" :tabindex="onglet==='admin'?0:-1"
+                aria-controls="panneau-admin" @click="allerAdmin()" @keydown="navOnglets($event)">Administration</button>
+      </div>
+    </nav>
+
+    <p class="statut" role="status" aria-live="polite"><span class="ok" v-if="statut">{{ statut }}</span></p>
+    <p class="statut" role="alert" aria-live="assertive" v-if="erreur"><span class="alerte-boite">{{ erreur }}</span></p>
+
+    <!-- ====================== ONGLET REPRISE ====================== -->
+    <section role="tabpanel" id="panneau-reprise" aria-labelledby="tab-reprise" v-show="onglet==='reprise'">
+      <div class="barre-chargement">
+        <div class="bloc">
+          <label for="fichier"><strong>Charger un DEX (.docx)</strong></label>
+          <input id="fichier" type="file" accept=".docx" @change="surFichier($event)">
+        </div>
+        <div class="bloc">
+          <label for="dossier"><strong>…ou un dossier de DEX (traitement par lot)</strong></label>
+          <input id="dossier" type="file" webkitdirectory directory multiple @change="surDossier($event)" :disabled="chargement">
+        </div>
+        <div class="zone-depot" @dragover.prevent @drop.prevent="surDepot($event)" aria-hidden="true">
+          Glisser-déposer un .docx ici
+        </div>
+      </div>
+      <p v-if="lot" class="muet" role="status" style="margin:.3rem 0">
+        Lot : {{ lot.fait }}/{{ lot.total }} traité(s) — {{ lot.ok }} ✓, {{ lot.ko }} échec(s).
+        <span v-if="lot.erreurs && lot.erreurs.length"> ({{ lot.erreurs.join(' ; ') }})</span>
+      </p>
+
+      <div v-if="resultat" class="espace" style="margin-top:1rem">
+        <!-- Colonne champs -->
+        <div class="colonne" aria-labelledby="t-champs">
+          <h2 id="t-champs">Champs CAST'IN</h2>
+          <dl class="ident">
+            <dt>Solution</dt><dd>{{ resultat.identification.solution || 'Non concerné' }}</dd>
+            <dt>Auteur</dt><dd>{{ resultat.identification.auteur || 'Non concerné' }}</dd>
+            <dt>Responsable</dt><dd>{{ resultat.identification.responsable || 'Non concerné' }}</dd>
+            <dt>Signature de gabarit</dt><dd>{{ resultat.gabarit_signature }}</dd>
+          </dl>
+
+          <div class="doc-outils">
+            <button class="secondaire" @click="replierTout(true)">Tout replier</button>
+            <button class="secondaire" @click="replierTout(false)">Tout déplier</button>
+          </div>
+          <template v-for="key in ordreKeys" :key="key">
+            <div class="carte"
+                 :class="{active:selection===key}"
+                 :style="styleCarte(key)">
+              <div class="entete">
+                <button class="chevron" @click="basculerCarte(key)"
+                        :aria-expanded="!replie[key]" :aria-controls="'corps-'+key"
+                        :aria-label="(replie[key]?'Déplier':'Replier')+' '+labelCarte(key)">{{ replie[key] ? '▸' : '▾' }}</button>
+                <span class="pal" v-if="!pastilleConfCouleur" :style="{background:couleurs[key].bord}" aria-hidden="true"></span>
+                <button class="lib" @click="selectionner(key)"
+                        :aria-pressed="selection===key"><span class="num-intitule">{{ numeros[key] }}.</span> {{ labelCarte(key) }}</button>
+                <span class="etiq">{{ tabCarte(key) }}</span>
+                <span class="conf"
+                      :class="pastilleConfCouleur ? '' : classeConf(resultat.champs[key].confiance)"
+                      :style="pastilleConfCouleur ? {background:couleurs[key].bord, color:couleurs[key].txt, borderColor:couleurs[key].bord} : null">
+                  {{ libelleConf(resultat.champs[key].confiance) }}</span>
+                <span v-if="resultat.champs[key].route_attention" class="conf faible"
+                      title="Routé en Points à vérifier par le seuil de confiance">⚠ à vérifier</span>
+                <span v-if="resultat.champs[key].ambigu" class="conf faible"
+                      title="Plusieurs sections candidates — choisir la bonne section">⚐ ambigu</span>
+              </div>
+              <div class="corps" v-show="!replie[key]" :id="'corps-'+key">
+              <div class="jauge" v-if="resultat.champs[key].confiance!=null" aria-hidden="true">
+                <span :style="{width:(resultat.champs[key].confiance*100)+'%'}"></span>
+              </div>
+              <p class="raison">{{ resultat.champs[key].raison }}</p>
+              <label class="vh" :for="'c-'+key">Contenu prêt à coller — {{ resultat.champs[key].label }}</label>
+              <textarea class="contenu" :id="'c-'+key" readonly rows="2"
+                        :value="resultat.champs[key].kind==='empty' ? '(laisser vide)' : (contenuAffiche(key) || 'Non concerné')"></textarea>
+
+              <fieldset class="candidats" v-if="resultat.champs[key].kind==='text' && resultat.champs[key].candidats.length>=2">
+                <legend>Section source — {{ resultat.champs[key].candidats.length }} candidates
+                  <span v-if="resultat.champs[key].ambigu" class="conf faible">ambigu</span></legend>
+                <label v-for="c in resultat.champs[key].candidats" :key="c.index" class="cand-opt"
+                       :class="{actif:(choix[key]?choix[key].index:resultat.champs[key].selection_moteur)===c.index}">
+                  <input type="radio" :name="'cand-'+key" :value="c.index"
+                         :checked="(choix[key]?choix[key].index:resultat.champs[key].selection_moteur)===c.index"
+                         @change="choisirCandidat(key,c)">
+                  <span class="cand-titre">{{ c.titre }}
+                    <span class="muet" style="font-weight:400">— score {{ c.score }}<template v-if="c.index===resultat.champs[key].selection_moteur"> · section moteur</template></span>
+                  </span>
+                  <span class="cand-extrait">{{ c.extrait || '(section vide)' }}</span>
+                </label>
+                <p v-if="choixDiffere(key)" class="muet">Section choisie ≠ section moteur → enregistrée comme <strong>mauvaise_section</strong> (avec correction).</p>
+              </fieldset>
+              <details class="candidats-info" v-else-if="resultat.champs[key].candidats.length>=2">
+                <summary>{{ resultat.champs[key].candidats.length }} sections détectées (agrégées par le moteur)</summary>
+                <ul><li v-for="c in resultat.champs[key].candidats" :key="c.index"><strong>{{ c.titre }}</strong> — {{ c.extrait || '(vide)' }}</li></ul>
+              </details>
+
+              <div class="suggestions" v-if="resultat.champs[key].suggestions && resultat.champs[key].suggestions.length">
+                <span class="muet">Suggestions :</span>
+                <button class="puce" v-for="(s,si) in resultat.champs[key].suggestions" :key="s.index"
+                        @click="allerLigneDico(key,si)"
+                        :title="'Voir cette suggestion dans le Dictionnaire'">{{ s.titre }} ({{ s.score }})</button>
+              </div>
+
+              <div class="actions" v-if="resultat.champs[key].kind!=='empty'">
+                <button class="secondaire" @click="copier(key)"
+                        :aria-label="'Copier le contenu du champ '+resultat.champs[key].label">Copier</button>
+                <template v-if="choixDiffere(key)">
+                  <button @click="confirmerSection(key)">Confirmer la section choisie</button>
+                  <button class="discret" @click="reinitChoix(key)">↺ section moteur</button>
+                </template>
+                <template v-else>
+                  <button class="discret" @click="valider(key,'accepte')">Accepter</button>
+                  <button class="discret" @click="ouvrirSignalement(key)">Signaler…</button>
+                </template>
+                <span class="valide-ok" v-if="etat(key).envoye==='accepte'" role="status">✓ accepté</span>
+                <span class="valide-sig" v-if="etat(key).envoye==='signale'" role="status">⚑ signalé ({{ etat(key).type }})</span>
+              </div>
+
+              <div class="form-signal" v-if="etat(key).formulaire">
+                <label :for="'ty-'+key">Type
+                  <select :id="'ty-'+key" v-model="etat(key).type">
+                    <option v-for="t in taxonomie" :key="t.v" :value="t.v">{{ t.l }}</option>
+                  </select>
+                </label>
+                <label :for="'co-'+key" style="flex:1;min-width:160px">Correction (facultatif)
+                  <input :id="'co-'+key" type="text" v-model="etat(key).correction" placeholder="ex. section attendue, passage…">
+                </label>
+                <button @click="envoyerSignalement(key)">Envoyer le signalement</button>
+                <button class="discret" @click="etat(key).formulaire=false">Annuler</button>
+              </div>
+              </div><!-- /corps -->
+            </div>
+          </template>
+
+          <h3>Points à vérifier auprès de l'Équipier Ops</h3>
+          <ul v-if="resultat.points_a_verifier.length"><li v-for="(p,i) in resultat.points_a_verifier" :key="i">{{ p }}</li></ul>
+          <p v-else class="muet">RAS</p>
+        </div>
+
+        <!-- Colonne document annoté -->
+        <div class="colonne" aria-labelledby="t-doc">
+          <h2 id="t-doc">Document annoté</h2>
+          <div class="doc-outils">
+            <label><input type="checkbox" v-model="toutAnnoter"> Afficher tous les surlignages</label>
+            <span class="muet" v-if="selection">Champ sélectionné : <strong>{{ resultat.champs[selection].label }}</strong></span>
+          </div>
+          <div class="legende" v-if="legende.length">
+            <span class="item" v-for="l in legende" :key="l.key">
+              <span class="pal" :style="{background:l.coul}"></span>{{ resultat.champs[l.key].label }}</span>
+          </div>
+          <div>
+            <div v-for="d in resultat.document" :key="d.index" :id="'p-'+d.index"
+                 class="para"
+                 :class="{titre:d.is_heading, explicatif:d.is_explanatory, surligne: surlignage(d.index).actif}"
+                 :style="surlignage(d.index).style">
+              <span class="badge-fleche" v-for="(lab,li) in surlignage(d.index).labels" :key="li">⟶ {{ lab }}</span>
+              {{ d.text || '·' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <p v-else class="muet" style="margin-top:1rem">Aucun DEX chargé. Choisissez un fichier .docx ou un dossier de DEX (lot).</p>
+    </section>
+
+    <!-- ====================== ONGLET TABLEAU DE BORD ====================== -->
+    <section role="tabpanel" id="panneau-dash" aria-labelledby="tab-dash" v-show="onglet==='dashboard'">
+      <div class="panneau">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <h2 style="margin:0">Calibration et qualité</h2>
+          <span v-if="metriques && metriques.calibration && metriques.calibration.actif" class="conf elevee"
+            title="Carte isotonique active (versionnée)">Calibration active · v{{ metriques.calibration.rules_version }}
+            <template v-if="metriques.calibration.seuil_routage>0"> · seuil routage {{ metriques.calibration.seuil_routage }}</template></span>
+          <span v-else-if="metriques" class="conf na">Calibration inactive</span>
+          <button class="secondaire" @click="chargerMetriques()">Rafraîchir</button>
+          <label for="ece">Cible ECE (ajustable)
+            <input id="ece" type="text" inputmode="decimal" v-model="cibleEceInput" style="width:5rem">
+          </label>
+          <button class="discret" @click="enregistrerCible()">Enregistrer la cible</button>
+        </div>
+
+        <div v-if="metriques">
+          <div class="cartes-kpi">
+            <div class="kpi"><div class="v">{{ metriques.n_evenements }}</div><div class="l">Validations enregistrées</div></div>
+            <div class="kpi"><div class="v">{{ fmt(metriques.brier_global) }}</div><div class="l">Score de Brier (plus bas = mieux)</div></div>
+            <div class="kpi" :class="classeEce">
+              <div class="v">{{ fmt(metriques.ece) }}</div><div class="l">ECE calibré (cible {{ metriques.cible_ece }})</div></div>
+            <div class="kpi"><div class="v">{{ fmt(metriques.ece_brut) }} → {{ fmt(metriques.ece) }}</div>
+              <div class="l">ECE brut → calibré<span v-if="metriques.amelioration_ece!=null"> ({{ metriques.amelioration_ece>=0?'−':'+' }}{{ Math.abs(metriques.amelioration_ece) }})</span></div></div>
+            <div class="kpi"><div class="v">{{ metriques.debit.median_s!=null ? metriques.debit.median_s+' s' : '—' }}</div><div class="l">Débit médian / DEX</div></div>
+          </div>
+
+          <h3>Alertes</h3>
+          <ul class="alertes" v-if="metriques.alertes.length"><li v-for="(a,i) in metriques.alertes" :key="i">{{ a }}</li></ul>
+          <p v-else class="muet">Aucune alerte.</p>
+
+          <h3>Acceptation par champ</h3>
+          <table>
+            <caption>Taux d'acceptation et Brier, par champ CAST'IN (verdicts humains).</caption>
+            <thead><tr><th scope="col">Champ</th><th scope="col">n</th><th scope="col">Acceptation</th><th scope="col">Brier</th></tr></thead>
+            <tbody>
+              <tr v-for="(m,champ) in metriques.par_champ" :key="champ">
+                <td>{{ champ }}</td><td>{{ m.n }}</td>
+                <td>{{ m.acceptation!=null ? Math.round(m.acceptation*100)+' %' : '—' }}</td>
+                <td>{{ fmt(m.brier) }}</td>
+              </tr>
+              <tr v-if="!Object.keys(metriques.par_champ).length"><td colspan="4" class="muet">Aucune donnée.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Diagramme de fiabilité</h3>
+          <svg viewBox="0 0 320 200" width="320" height="200" role="img"
+               aria-label="Diagramme de fiabilité : acceptation observée par tranche de confiance, comparée à la diagonale de calibration parfaite.">
+            <line x1="40" y1="170" x2="300" y2="170" stroke="#999"></line>
+            <line x1="40" y1="10" x2="40" y2="170" stroke="#999"></line>
+            <line x1="40" y1="170" x2="300" y2="10" stroke="#bbb" stroke-dasharray="4 3"></line>
+            <template v-for="(b,i) in metriques.fiabilite" :key="i">
+              <rect v-if="b.n" :x="40 + i*26 + 4" :y="170 - (b.acceptation*160)" width="18"
+                    :height="b.acceptation*160" :fill="b.acceptation>=b.confiance? '#18753c':'#b34000'"></rect>
+            </template>
+          </svg>
+          <table>
+            <caption class="vh">Données du diagramme de fiabilité</caption>
+            <thead><tr><th scope="col">Tranche confiance</th><th scope="col">n</th><th scope="col">Confiance moy.</th><th scope="col">Acceptation</th></tr></thead>
+            <tbody>
+              <tr v-for="(b,i) in metriques.fiabilite" :key="i" v-show="b.n">
+                <td>{{ b.bin[0] }} – {{ b.bin[1] }}</td><td>{{ b.n }}</td>
+                <td>{{ b.confiance }}</td><td>{{ b.acceptation }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else class="muet">Aucune métrique pour l'instant. Validez des champs dans l'onglet « Reprise assistée ».</p>
+      </div>
+
+      <div class="panneau">
+        <h2>Calibration isotonique</h2>
+        <p class="muet">Ajuste une carte monotone <em>score brut → acceptation</em> à partir des verdicts.
+          La carte est <strong>candidate</strong> : elle n'est pas activée ici. Après le gate
+          (<code>calibration_check.py</code> + harness), copier <code>regles.candidate.json</code> →
+          <code>regles.json</code> et recharger.</p>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+          <button class="secondaire" @click="analyserCalibration()">Analyser la calibration</button>
+          <button @click="proposerCalibration()" :disabled="!calibrationAnalyse || !calibrationAnalyse.suffisant">
+            Écrire regles.candidate.json</button>
+        </div>
+        <div v-if="calibrationAnalyse" style="margin-top:.7rem">
+          <p v-if="!calibrationAnalyse.suffisant" class="muet">{{ calibrationAnalyse.message }}</p>
+          <div v-else>
+            <div class="cartes-kpi">
+              <div class="kpi"><div class="v">{{ calibrationAnalyse.n }}</div><div class="l">Verdicts exploités</div></div>
+              <div class="kpi" :class="(calibrationAnalyse.gain||0)>=0?'bon':'mauvais'">
+                <div class="v">{{ fmt(calibrationAnalyse.ece_brut) }} → {{ fmt(calibrationAnalyse.ece_estime) }}</div>
+                <div class="l">ECE brut → estimé (in-sample)</div></div>
+              <div class="kpi"><div class="v">v{{ calibrationAnalyse.version_proposee }}</div><div class="l">Version proposée</div></div>
+            </div>
+            <p class="muet">Champs calibrés individuellement :
+              <span v-if="calibrationAnalyse.champs_calibres.length">{{ calibrationAnalyse.champs_calibres.join(', ') }}</span>
+              <span v-else>aucun (volume par champ insuffisant ; carte par défaut appliquée)</span>.</p>
+            <details>
+              <summary>Carte par défaut ({{ calibrationAnalyse.par_defaut.length }} points)</summary>
+              <p class="muet" style="font-family:monospace">{{ JSON.stringify(calibrationAnalyse.par_defaut) }}</p>
+            </details>
+          </div>
+        </div>
+        <p class="statut" role="status" aria-live="polite" v-if="calibrationStatut">{{ calibrationStatut }}</p>
+      </div>
+
+      <div class="panneau">
+        <h2>Replay — mesurer l'amélioration après modification</h2>
+        <p class="muet">Après un patch de règles (édition de <code>regles.json</code> + rechargement),
+          rejouez le DEX courant pour comparer au dernier instantané.</p>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+          <button @click="rejouer()" :disabled="!resultat">Rejouer le DEX courant</button>
+          <button class="discret" @click="rechargerRegles()">Recharger les règles (regles.json)</button>
+          <span class="muet" v-if="!resultat">Chargez d'abord un DEX dans l'onglet « Reprise ».</span>
+        </div>
+
+        <div v-if="replay" style="margin-top:.8rem">
+          <p><strong>Version</strong> : {{ replay.version_avant || '—' }} → {{ replay.version_apres }} ·
+             <strong>Points</strong> : {{ replay.n_points_avant }} → {{ replay.n_points_apres }}
+             <span v-if="!replay.a_un_instantane_precedent" class="muet">(pas d'instantané précédent)</span></p>
+          <h3>Champs modifiés ({{ replay.champs_modifies.length }})</h3>
+          <div v-for="m in replay.champs_modifies" :key="m.champ" class="replay-modif">
+            <strong>{{ m.label }}</strong> — confiance {{ fmt(m.avant.confiance) }} → {{ fmt(m.apres.confiance) }}
+            <div v-if="m.avant.content!==m.apres.content">
+              <del>{{ (m.avant.content||'∅').slice(0,160) }}</del><br><ins>{{ (m.apres.content||'∅').slice(0,160) }}</ins>
+            </div>
+          </div>
+          <p v-if="!replay.champs_modifies.length" class="muet">Aucun champ modifié.</p>
+          <p v-if="replay.points_resolus.length"><strong class="valide-ok">Points résolus :</strong></p>
+          <ul><li v-for="(p,i) in replay.points_resolus" :key="i">{{ p }}</li></ul>
+          <p v-if="replay.points_nouveaux.length"><strong class="valide-sig">Points nouveaux :</strong></p>
+          <ul><li v-for="(p,i) in replay.points_nouveaux" :key="i">{{ p }}</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== ONGLET HISTORIQUE ====================== -->
+    <section role="tabpanel" id="panneau-hist" aria-labelledby="tab-hist" v-show="onglet==='historique'">
+      <div class="doc-outils">
+        <button class="secondaire" @click="chargerHistorique()">Rafraîchir</button>
+        <span class="muet" v-if="historique">{{ historique.total }} DEX analysé(s) sur ce poste</span>
+      </div>
+
+      <p v-if="!historique || !historique.total" class="muet">Aucune analyse enregistrée pour l'instant. Les DEX traités dans l'onglet « Reprise assistée » apparaîtront ici.</p>
+
+      <template v-if="historique && historique.total">
+        <h2>Détail des DEX analysés</h2>
+        <table class="hist">
+          <caption class="vh">Liste des DEX analysés. Triable sur chaque en-tête.</caption>
+          <thead><tr>
+            <th scope="col" :aria-sort="ariaSortH('horodatage')"><button class="tri" @click="trierHist('horodatage')">Heure{{ flecheH('horodatage') }}</button></th>
+            <th scope="col" :aria-sort="ariaSortH('nom')"><button class="tri" @click="trierHist('nom')">Nom{{ flecheH('nom') }}</button></th>
+            <th scope="col" :aria-sort="ariaSortH('dex_id')"><button class="tri" @click="trierHist('dex_id')">DEX{{ flecheH('dex_id') }}</button></th>
+            <th scope="col" :aria-sort="ariaSortH('gabarit')"><button class="tri" @click="trierHist('gabarit')">Gabarit{{ flecheH('gabarit') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSortH('abouti')"><button class="tri" @click="trierHist('abouti')">Abouti{{ flecheH('abouti') }}</button></th>
+            <th scope="col" class="num conf-e" :aria-sort="ariaSortH('elevee')"><button class="tri" @click="trierHist('elevee')">élevée{{ flecheH('elevee') }}</button></th>
+            <th scope="col" class="num conf-m" :aria-sort="ariaSortH('moyenne')"><button class="tri" @click="trierHist('moyenne')">moyenne{{ flecheH('moyenne') }}</button></th>
+            <th scope="col" class="num conf-f" :aria-sort="ariaSortH('faible')"><button class="tri" @click="trierHist('faible')">faible{{ flecheH('faible') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSortH('vide')"><button class="tri" @click="trierHist('vide')">(vide){{ flecheH('vide') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSortH('ambigu')"><button class="tri" @click="trierHist('ambigu')">⚐ ambigus{{ flecheH('ambigu') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSortH('points')"><button class="tri" @click="trierHist('points')">points{{ flecheH('points') }}</button></th>
+            <th scope="col" :aria-sort="ariaSortH('regles')"><button class="tri" @click="trierHist('regles')">règles{{ flecheH('regles') }}</button></th>
+          </tr></thead>
+          <tbody>
+            <tr v-for="a in analysesTriees" :key="a.id">
+              <td>{{ horodatageLisible(a.horodatage) }}</td>
+              <td>{{ a.nom || '—' }}</td>
+              <td>{{ a.dex_id }}</td>
+              <td><code>{{ a.gabarit_signature }}</code></td>
+              <td class="num"><button v-if="a.n_abouti" class="lien-nombre" @click="ouvrirEtFiltrer(a,'abouti')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.n_abouti }}</button><span v-else class="muet">{{ a.n_abouti==null ? '—' : 0 }}</span></td>
+              <td class="num conf-e"><button v-if="a.conf.elevee" class="lien-nombre" @click="ouvrirEtFiltrer(a,'elevee')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.conf.elevee }}</button><span v-else class="muet">0</span></td>
+              <td class="num conf-m"><button v-if="a.conf.moyenne" class="lien-nombre" @click="ouvrirEtFiltrer(a,'moyenne')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.conf.moyenne }}</button><span v-else class="muet">0</span></td>
+              <td class="num conf-f"><button v-if="a.conf.faible" class="lien-nombre" @click="ouvrirEtFiltrer(a,'faible')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.conf.faible }}</button><span v-else class="muet">0</span></td>
+              <td class="num"><button v-if="a.conf.vide" class="lien-nombre" @click="ouvrirEtFiltrer(a,'vide')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.conf.vide }}</button><span v-else class="muet">0</span></td>
+              <td class="num"><button v-if="a.n_ambigu" class="lien-nombre" @click="ouvrirEtFiltrer(a,'ambigu')" title="Ouvrir ce DEX et déplier ce groupe">{{ a.n_ambigu }}</button><span v-else class="muet">0</span></td>
+              <td class="num">{{ a.n_points }}</td>
+              <td>{{ a.rules_version }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+    </section>
+
+    <!-- ====================== ONGLET ADMINISTRATION ====================== -->
+    <section role="tabpanel" id="panneau-admin" aria-labelledby="tab-admin" v-show="onglet==='admin'">
+      <h2>Administration — signalement par e-mail</h2>
+      <p class="muet">Valeurs par défaut du brouillon ouvert par « Signaler ». Elles sont enregistrées sur le poste (configuration locale) et peuvent être modifiées au cas par cas avant l'envoi.</p>
+      <div class="admin-form">
+        <label for="adm-adr">Destinataire(s) <span class="muet">— une ou plusieurs adresses séparées par « ; »</span>
+          <input id="adm-adr" type="text" v-model="adminEmail.adresses" placeholder="prenom.nom@mail.fr ; equipe@mail.fr">
+        </label>
+        <label for="adm-obj">Objet (préfixe) <span class="muet">— l'objet final = ce préfixe + le type de signalement</span>
+          <input id="adm-obj" type="text" v-model="adminEmail.objet_prefixe" placeholder="Castin ; ">
+        </label>
+        <label for="adm-int">Contenu (introduction) <span class="muet">— précède le contenu de la carte signalée (peut rester vide)</span>
+          <textarea id="adm-int" rows="2" v-model="adminEmail.contenu_prefixe" placeholder="(facultatif)"></textarea>
+        </label>
+        <label for="adm-suf">Suffixe (salutation) <span class="muet">— ajouté en fin de corps</span>
+          <textarea id="adm-suf" rows="2" v-model="adminEmail.suffixe" placeholder="Cordialement,"></textarea>
+        </label>
+        <div class="doc-outils">
+          <button @click="enregistrerAdmin()">Enregistrer</button>
+          <button class="discret" @click="reinitAdmin()">Rétablir les valeurs par défaut</button>
+          <span class="valide-ok" v-if="adminEnregistre" role="status">✓ enregistré</span>
+        </div>
+        <details>
+          <summary>Aperçu de l'objet/corps générés</summary>
+          <p><strong>Objet :</strong> <code>{{ adminEmail.objet_prefixe }}&lt;type&gt;</code></p>
+          <p><strong>Corps :</strong></p>
+          <pre class="apercu-corps">{{ apercuCorps }}</pre>
+        </details>
+      </div>
+
+      <h2>Affichage</h2>
+      <div class="admin-form">
+        <label class="bascule">
+          <input type="checkbox" v-model="pastilleConfCouleur" @change="enregistrerPastille()">
+          La pastille de confiance prend la <strong>couleur du champ</strong> <span class="muet">(au lieu de vert / orange / rouge ; le niveau reste lisible par le libellé et la jauge)</span>
+        </label>
+        <p class="muet">« On » (défaut) : la pastille de chaque carte reprend la couleur du champ — même repère visuel que la légende et les cadres du document. « Off » : la pastille reprend un code vert / orange / rouge selon le niveau de confiance, et une pastille de couleur séparée assure le suivi.</p>
+      </div>
+    </section>
+
+    <!-- ====================== ONGLET DICTIONNAIRE ====================== -->
+    <section role="tabpanel" id="panneau-dico" aria-labelledby="tab-dico" v-show="onglet==='dictionnaire'">
+      <h2>Dictionnaire des intitulés</h2>
+      <p class="muet">Tableau des intitulés (cartes) : règle l'<strong>ordre d'affichage</strong> des cartes de « Reprise assistée » et donne, pour chaque intitulé, son numéro, son terme, son statut de repérage et les suggestions proposées. Depuis « Reprise assistée », cliquer une suggestion amène à la ligne correspondante.</p>
+      <p v-if="!resultat" class="muet">Traitez un DEX dans « Reprise assistée » pour alimenter le dictionnaire.</p>
+      <template v-else>
+        <p class="dico-action"><strong>« Appliquer cette section »</strong> remplace le contenu du champ par celui de cette section et l'encadre dans le document ; à la confirmation, l'écart est journalisé (<code>section_introuvable</code> ou <code>mauvaise_section</code>) pour enrichir le lexique.</p>
+        <div class="doc-outils">
+          <button class="secondaire" @click="enregistrerOrdre()">Enregistrer l'ordre</button>
+          <button class="discret" @click="reinitOrdre()">Rétablir l'ordre par défaut</button>
+          <span class="valide-ok" v-if="ordreEnregistre" role="status">✓ ordre enregistré</span>
+        </div>
+        <table class="dico">
+          <caption class="vh">Dictionnaire des intitulés : ordre d'affichage, numéro, intitulé, repérage, titre proposé, proximité. Triable sur chaque en-tête.</caption>
+          <thead><tr>
+            <th scope="col" class="num" :aria-sort="ariaSort('ordre')"><button class="tri" @click="trierDico('ordre')">Ordre{{ flecheTri('ordre') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSort('numero')"><button class="tri" @click="trierDico('numero')">N°{{ flecheTri('numero') }}</button></th>
+            <th scope="col" :aria-sort="ariaSort('tab')"><button class="tri" @click="trierDico('tab')">Catégorie{{ flecheTri('tab') }}</button></th>
+            <th scope="col" :aria-sort="ariaSort('label')"><button class="tri" @click="trierDico('label')">Intitulé{{ flecheTri('label') }}</button></th>
+            <th scope="col" :aria-sort="ariaSort('repere')"><button class="tri" @click="trierDico('repere')">Repérage{{ flecheTri('repere') }}</button></th>
+            <th scope="col" :aria-sort="ariaSort('titre')"><button class="tri" @click="trierDico('titre')">Titre proposé{{ flecheTri('titre') }}</button></th>
+            <th scope="col" class="num" :aria-sort="ariaSort('score')"><button class="tri" @click="trierDico('score')">Proximité{{ flecheTri('score') }}</button></th>
+            <th scope="col">Action</th>
+          </tr></thead>
+          <tbody>
+            <tr v-for="r in dictionnaireTriee" :key="r.key+'-'+r.idx" :id="'dico-'+r.key+'-'+r.idx" :class="{cible: suggCible===r.key+'-'+r.idx}">
+              <td class="num">
+                <label class="vh" :for="'ord-'+r.key+'-'+r.idx">Ordre d'affichage de {{ r.label }}</label>
+                <input class="ord" type="number" min="1" :id="'ord-'+r.key+'-'+r.idx"
+                       :value="r.ordre" @change="majOrdre(r.key,$event.target.value); enregistrerOrdre()">
+              </td>
+              <td class="num">{{ r.numero }}</td>
+              <td>
+                <label class="vh" :for="'cat-'+r.key+'-'+r.idx">Catégorie de {{ r.label }}</label>
+                <input class="cat" type="text" :id="'cat-'+r.key+'-'+r.idx"
+                       :value="r.tab" @change="majIntitule(r.key,{tab:$event.target.value}); enregistrerIntitules()">
+              </td>
+              <td>
+                <label class="vh" :for="'int-'+r.key+'-'+r.idx">Intitulé de {{ r.label }}</label>
+                <input class="intitule" type="text" :id="'int-'+r.key+'-'+r.idx"
+                       :value="r.label" @change="majIntitule(r.key,{label:$event.target.value}); enregistrerIntitules()">
+              </td>
+              <td class="muet">{{ r.repere }}</td>
+              <td>
+                <template v-if="r.sugg">
+                  <label class="vh" :for="'tit-'+r.key+'-'+r.idx">Titre proposé pour {{ r.label }}</label>
+                  <input class="titre-prop" type="text" :id="'tit-'+r.key+'-'+r.idx"
+                         :value="r.titreVue" @change="majTitre(r.key,r.titre,$event.target.value); enregistrerTitres()">
+                </template>
+                <span v-else class="muet">—</span>
+              </td>
+              <td class="num">{{ r.score==null ? '—' : r.score }}</td>
+              <td>
+                <template v-if="r.sugg">
+                  <button class="puce" v-if="r.kind==='text' && r.contenu!=null" @click="appliquerDepuisSuggestion(r.key,r.sugg)">Appliquer</button>
+                  <button class="puce discret" @click="voirDansDocument(r.key,r.sugg)">Voir</button>
+                </template>
+                <span v-else class="muet">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+    </section>
+  </main>
+
+  <!-- ====================== APERÇU / VALIDATION DU MAIL ====================== -->
+  <div class="modale-fond" v-if="mail" @click.self="annulerMail">
+    <div class="modale" role="dialog" aria-modal="true" aria-labelledby="mail-titre" @keydown.esc="annulerMail">
+      <h2 id="mail-titre">Signalement par e-mail — {{ mail.champLabel }}</h2>
+      <p class="muet">Le signalement a été enregistré localement. Vérifiez/modifiez le message ci-dessous, puis envoyez (votre client de messagerie s'ouvrira). Le corps reprend toutes les infos de la carte. <strong>Astuce Outlook</strong> : pour un rendu mis en forme, utilisez « Copier la fiche en HTML » puis collez (Ctrl+V) dans le corps du message — le <code>mailto:</code> lui-même ne transmet que du texte.</p>
+      <label for="mail-dest">Destinataire(s)
+        <input id="mail-dest" type="text" v-model="mail.dest" ref="mailDest">
+      </label>
+      <label for="mail-obj">Objet
+        <input id="mail-obj" type="text" v-model="mail.objet">
+      </label>
+      <label for="mail-corps">Corps du message (texte)
+        <textarea id="mail-corps" rows="16" v-model="mail.corps"></textarea>
+      </label>
+      <div class="doc-outils">
+        <button @click="envoyerMail()">Ouvrir dans la messagerie</button>
+        <button class="secondaire" @click="copierFicheHtml()">Copier la fiche en HTML</button>
+        <button class="discret" @click="annulerMail()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./vue.global.prod.js"></script>
+<script>
+const { createApp } = Vue;
+createApp({
+  data(){ return {
+    backOk:false, health:null, role:'rodage', onglet:'reprise',
+    cheminInput:'', chargement:false, resultat:null, source:null,
+    selection:null, toutAnnoter:true, etats:{}, choix:{}, replie:{}, historique:null, debutTs:null,
+    adminEmail:{adresses:'fredgarcia@mail.fr', objet_prefixe:'Castin ; ', contenu_prefixe:'', suffixe:'Cordialement,'},
+    adminEnregistre:false, mail:null, pastilleConfCouleur:true, suggCible:null, ordreCartes:{}, ordreEnregistre:false,
+    dicoTri:{col:'ordre',sens:1}, intitulesCartes:{}, titresProposes:{}, histTri:{col:'horodatage',sens:-1},
+    sourcesLot:{}, lot:null,
+    statut:'', erreur:'',
+    metriques:null, cibleEceInput:'', replay:null,
+    calibrationAnalyse:null, calibrationStatut:'',
+    taxonomie:[
+      {v:'section_introuvable',l:'Section introuvable'},
+      {v:'mauvaise_section',l:'Mauvaise section'},
+      {v:'encart_repris',l:'Encart repris à tort'},
+      {v:'contenu_ecarte',l:'Contenu écarté à tort'},
+      {v:'lien_errone',l:'Lien erroné'},
+      {v:'compose_mal_assemble',l:'Composé mal assemblé'},
+      {v:'identification_erronee',l:'Identification erronée'},
+      {v:'parasite_residuel',l:'Parasite résiduel'},
+    ],
+  };},
+  computed:{
+    couleurs(){
+      const out={}; if(!this.resultat) return out;
+      const ks=this.resultat.ordre_champs, n=ks.length||1;
+      // luminance relative WCAG d'une couleur HSL -> choix d'un texte (#fff/#1a1a1a) à contraste sûr
+      const lum=(h,s,l)=>{ s/=100; l/=100;
+        const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+        let r,g,b;
+        if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;}
+        else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else {r=c;g=0;b=x;}
+        const lin=u=>{u+=m; return u<=0.03928? u/12.92 : Math.pow((u+0.055)/1.055,2.4);};
+        return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b); };
+      ks.forEach((k,i)=>{ const h=Math.round(i*360/n); const L=lum(h,60,42);
+        const txt = (1.05/(L+0.05)) >= ((L+0.05)/0.05) ? '#fff' : '#1a1a1a';
+        out[k]={bord:`hsl(${h} 60% 42%)`, fond:`hsl(${h} 82% 95%)`, txt}; });
+      return out;
+    },
+    groupes(){
+      if(!this.resultat) return [];
+      const dd=[],dx=[];
+      this.resultat.ordre_champs.forEach(k=>{ (this.resultat.champs[k].tab==='DEX'?dx:dd).push(k); });
+      return [{tab:'Description détaillée',keys:dd},{tab:'DEX',keys:dx}];
+    },
+    legende(){
+      if(!this.resultat) return [];
+      const set = this.toutAnnoter ? this.resultat.ordre_champs : (this.selection?[this.selection]:[]);
+      return set.filter(k=>this.spansAffiches(k).length)
+                .map(k=>({key:k, coul:this.couleurs[k].bord}));
+    },
+    classeEce(){ if(!this.metriques||this.metriques.ece==null) return '';
+      return this.metriques.ece<=this.metriques.cible_ece ? 'bon':'mauvais'; },
+    apercuCorps(){ return [this.adminEmail.contenu_prefixe, '<contenu de la carte signalée>', this.adminEmail.suffixe]
+        .filter(x=>x && String(x).trim()).join('\n\n'); },
+    numeros(){ const out={}; if(!this.resultat) return out;
+      this.resultat.ordre_champs.forEach((k,i)=>{ out[k]=i+1; }); return out; },
+    ordreKeys(){ if(!this.resultat) return [];
+      return this.resultat.ordre_champs
+        .map((k,i)=>({k, num:i+1, ordre:(this.ordreCartes[k]!=null? Number(this.ordreCartes[k]) : i+1)}))
+        .sort((a,b)=> (a.ordre-b.ordre) || (a.num-b.num))
+        .map(x=>x.k); },
+    dictionnaire(){
+      if(!this.resultat) return [];
+      const rows=[];
+      this.resultat.ordre_champs.forEach((k,i)=>{
+        const c=this.resultat.champs[k]; const sg=c.suggestions||[];
+        const ordre=(this.ordreCartes[k]!=null? Number(this.ordreCartes[k]) : i+1);
+        const commun={key:k, numero:i+1, ordre, label:this.labelCarte(k), tab:this.tabCarte(k), kind:c.kind};
+        if(sg.length){
+          sg.forEach((s,si)=>rows.push({...commun, idx:si, repere:"Repérage non abouti",
+            titre:s.titre, titreVue:this.titreAffiche(k,s.titre), score:s.score, contenu:s.contenu, sugg:s}));
+        } else {
+          rows.push({...commun, idx:0, repere:`Repéré (confiance ${this.libelleConf(c.confiance)}).`,
+            titre:'', titreVue:'', score:null, contenu:null, sugg:null});
+        }
+      });
+      return rows; },
+    dictionnaireTriee(){
+      const rows=this.dictionnaire.slice(); const {col,sens}=this.dicoTri;
+      const val=r=>{ switch(col){
+        case 'numero': return r.numero;
+        case 'tab': return (r.tab||'').toLowerCase();
+        case 'label': return (r.label||'').toLowerCase();
+        case 'repere': return (r.repere||'').toLowerCase();
+        case 'titre': return (r.titreVue||r.titre||'').toLowerCase();
+        case 'score': return r.score==null? -1 : r.score;
+        default: return r.ordre; } };
+      rows.sort((a,b)=>{ const x=val(a), y=val(b);
+        if(x<y) return -sens; if(x>y) return sens;
+        return (a.ordre-b.ordre)||(a.numero-b.numero)||(a.idx-b.idx); });
+      return rows; },
+    analysesTriees(){
+      const recs=(this.historique && this.historique.analyses) ? this.historique.analyses.slice() : [];
+      const {col,sens}=this.histTri;
+      const val=r=>{ switch(col){
+        case 'nom': return (r.nom||'').toLowerCase();
+        case 'dex_id': return (r.dex_id||'').toLowerCase();
+        case 'gabarit': return (r.gabarit_signature||'').toLowerCase();
+        case 'abouti': return r.n_abouti!=null? r.n_abouti : -1;
+        case 'elevee': return (r.conf||{}).elevee||0;
+        case 'moyenne': return (r.conf||{}).moyenne||0;
+        case 'faible': return (r.conf||{}).faible||0;
+        case 'vide': return (r.conf||{}).vide||0;
+        case 'ambigu': return r.n_ambigu||0;
+        case 'points': return r.n_points||0;
+        case 'regles': return (r.rules_version||'').toLowerCase();
+        default: return r.horodatage||''; } };
+      recs.sort((a,b)=>{ const x=val(a), y=val(b);
+        if(x<y) return -sens; if(x>y) return sens; return (a.horodatage||'')<(b.horodatage||'')?1:-1; });
+      return recs; },
+  },
+  methods:{
+    async api(method,path,body){
+      const opt={method,headers:{'Content-Type':'application/json'}};
+      if(body!==undefined) opt.body=JSON.stringify(body);
+      const r=await fetch(path,opt);
+      const j=await r.json().catch(()=>({error:'réponse illisible'}));
+      if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+      return j;
+    },
+    async sante(){ try{ this.health=await this.api('GET','/api/health'); this.backOk=true; }
+      catch(e){ this.backOk=false; } },
+    info(m){ this.statut=m; this.erreur=''; },
+    err(e){ this.erreur=(e&&e.message)||String(e); },
+    surFichier(ev){ const f=ev.target.files&&ev.target.files[0]; if(f) this.lireFichier(f); },
+    surDepot(ev){ const f=ev.dataTransfer.files&&ev.dataTransfer.files[0];
+      if(f){ if(!f.name.toLowerCase().endsWith('.docx')){ this.err('Le fichier doit être un .docx.'); return;} this.lireFichier(f);} },
+    lireFichier(f){ const rd=new FileReader();
+      rd.onload=()=>{ const b64=String(rd.result).split(',')[1];
+        this.source={filename:f.name, content_base64:b64}; this.traiter(); };
+      rd.onerror=()=>this.err('Lecture du fichier impossible.'); rd.readAsDataURL(f); },
+    traiterDepuisChemin(){ this.source={path:this.cheminInput.trim()}; this.traiter(); },
+    async traiter(){
+      this.chargement=true; this.info('Traitement en cours…'); this.replay=null;
+      try{
+        this.resultat=await this.api('POST','/api/process-dex', this.source);
+        this._memoriserSource();
+        this.initApresTraitement();
+        const pts=this.resultat.points_a_verifier.length;
+        this.info(`DEX ${this.resultat.identification.solution||''} traité — ${pts} point(s) à vérifier.`);
+        this.sante();
+      }catch(e){ this.err(e); this.resultat=null; } finally{ this.chargement=false; }
+    },
+    _memoriserSource(){ // mémorise la source par nom de fichier pour ré-ouverture depuis l'Historique
+      const s=this.source||{}; let fn=s.filename;
+      if(!fn && s.path) fn=String(s.path).split(/[\\/]/).pop();
+      if(fn) this.sourcesLot={...this.sourcesLot,[fn]:{...s}}; },
+    initApresTraitement(){
+      this.etats={}; this.choix={};
+      // Pli initial : on replie les cadres « Non concerné » (sans repère dans le
+      // document) sauf si une ambiguïté ou un routage d'attention y est signalé.
+      const r={};
+      this.resultat.ordre_champs.forEach(k=>{ const c=this.resultat.champs[k];
+        r[k] = this.estNonConcerne(k) && !c.ambigu && !c.route_attention; });
+      this.replie=r;
+      this.resultat.ordre_champs.forEach(k=>{ this.etats[k]={formulaire:false,type:'section_introuvable',correction:'',envoye:null}; });
+      this.debutTs=Date.now();
+      this.selection=this.resultat.ordre_champs.find(k=>this.resultat.champs[k].source_spans.length)||null;
+    },
+    fichierEnBase64(f){ return new Promise((res,rej)=>{ const rd=new FileReader();
+      rd.onload=()=>res(String(rd.result).split(',')[1]); rd.onerror=()=>rej(new Error('lecture impossible')); rd.readAsDataURL(f); }); },
+    async surDossier(ev){ const liste=Array.from(ev.target.files||[]); ev.target.value='';
+      const docx=liste.filter(f=>f.name.toLowerCase().endsWith('.docx'));
+      if(!docx.length){ this.err('Aucun fichier .docx dans le dossier sélectionné.'); return; }
+      this.chargement=true; this.lot={total:docx.length, fait:0, ok:0, ko:0, erreurs:[]};
+      let dernier=null, derniereSrc=null;
+      for(const f of docx){
+        try{ const b64=await this.fichierEnBase64(f); const src={filename:f.name, content_base64:b64};
+          this.sourcesLot={...this.sourcesLot,[f.name]:src};
+          dernier=await this.api('POST','/api/process-dex', src); derniereSrc=src; this.lot.ok++;
+        }catch(e){ this.lot.ko++; this.lot.erreurs.push(f.name+' : '+(e.message||e)); }
+        this.lot.fait++;
+      }
+      if(dernier){ this.source=derniereSrc; this.resultat=dernier; this.initApresTraitement(); }
+      this.chargement=false;
+      this.info(`Lot terminé : ${this.lot.ok} DEX traité(s), ${this.lot.ko} échec(s).`);
+      this.sante(); },
+    // ré-ouverture depuis l'Historique : ouvrir le fichier de la ligne puis déplier le groupe
+    async ouvrirEtFiltrer(a, groupe){
+      const src=this.sourcesLot[a.nom];
+      if(src){ this.source={...src}; await this.traiter(); if(this.resultat) this.filtrerGroupe(groupe); }
+      else { this.onglet='reprise';
+        this.err(`Fichier « ${a.nom} » non disponible dans cette session : re-sélectionnez le dossier pour le ré-ouvrir.`);
+        if(this.resultat) this.filtrerGroupe(groupe); } },
+    ecoule(){ return this.debutTs ? Math.round((Date.now()-this.debutTs)/1000) : null; },
+    styleCarte(key){ const c=this.couleurs[key]||{}; return {'--coul':c.bord,'--coulfond':c.fond}; },
+    selectionner(key){ this.selection=key; this.allerPremierSpan(key); },
+    allerPremierSpan(key){ const sp=this.spansAffiches(key);
+      if(sp.length) this.allerParagraphe(sp[0][0]); },
+    // --- Pli des cartes (accordéon / minimisable) ---
+    estNonConcerne(key){ const c=this.resultat.champs[key];
+      return c.kind!=='empty' && (!c.source_spans || !c.source_spans.length); },
+    basculerCarte(key){ this.replie={...this.replie,[key]:!this.replie[key]}; },
+    replierTout(val){ const m={}; if(this.resultat) this.resultat.ordre_champs.forEach(k=>{ m[k]=val; }); this.replie=m; },
+    // --- Désambiguïsation : la section affichée = choix (candidat OU suggestion), sinon moteur ---
+    //     this.choix[key] = {index, titre, span, contenu} | undefined
+    sectionChoisie(key){ return this.choix[key]; },
+    spansAffiches(key){ const c=this.resultat.champs[key]; const o=this.choix[key];
+      if(o && o.index!==c.selection_moteur && c.kind==='text' && o.span) return [o.span];
+      return c.source_spans; },
+    contenuAffiche(key){ const c=this.resultat.champs[key]; const o=this.choix[key];
+      if(o && o.index!==c.selection_moteur && c.kind==='text' && o.contenu!=null) return o.contenu;
+      return c.content; },
+    choixDiffere(key){ const c=this.resultat.champs[key]; const o=this.choix[key];
+      return !!o && o.index!==c.selection_moteur; },
+    choisirCandidat(key,c){ this.choix={...this.choix,[key]:{index:c.index,titre:c.titre,span:c.span,contenu:c.contenu}};
+      this.selection=key; if(c.span) this.allerParagraphe(c.span[0]); },
+    choisirSuggestion(key,s){ const c=this.resultat.champs[key]; this.selection=key;
+      if(c.kind==='text' && s.contenu!=null){
+        this.choix={...this.choix,[key]:{index:s.index,titre:s.titre,span:s.span,contenu:s.contenu}};
+        if(s.span) this.allerParagraphe(s.span[0]);
+      } else { this.allerParagraphe(s.index); } },
+    reinitChoix(key){ const m={...this.choix}; delete m[key]; this.choix=m; this.selectionner(key); },
+    confirmerSection(key){ const c=this.resultat.champs[key]; const o=this.choix[key]||{};
+      const moteur=(c.candidats||[]).find(x=>x.index===c.selection_moteur)||{};
+      // section moteur absente => le champ n'était pas trouvé : section_introuvable ; sinon mauvaise_section
+      const type = c.selection_moteur==null ? 'section_introuvable' : 'mauvaise_section';
+      const corr={section_choisie:{index:o.index,titre:o.titre},
+                  section_moteur:{index:c.selection_moteur,titre:moteur.titre||null}};
+      this.valider(key,'signale',type,corr);
+      this.preparerMail(key, type, corr); },
+    allerParagraphe(idx){ this.$nextTick(()=>{ const el=document.getElementById('p-'+idx);
+      if(el) el.scrollIntoView({block:'center', behavior:'smooth'}); }); },
+    // --- Historique ---
+    allerHistorique(){ this.onglet='historique'; this.chargerHistorique(); },
+    async chargerHistorique(){ try{ this.historique=await this.api('GET','/api/history'); }catch(e){ this.err(e); } },
+    heureLisible(h){ if(!h) return '—'; const [d,hh]=h.split('T'); return (d? d.split('-').reverse().join('/') : '')+' '+(hh||'')+'h'; },
+    horodatageLisible(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleString('fr-FR'); }catch(e){ return iso; } },
+    // --- Onglet Dictionnaire (tableau des intitulés + navigation depuis la Reprise) ---
+    allerDictionnaire(){ this.onglet='dictionnaire'; },
+    trierDico(col){ if(this.dicoTri.col===col){ this.dicoTri={col,sens:-this.dicoTri.sens}; } else { this.dicoTri={col,sens:1}; } },
+    ariaSort(col){ if(this.dicoTri.col!==col) return 'none'; return this.dicoTri.sens>0?'ascending':'descending'; },
+    flecheTri(col){ if(this.dicoTri.col!==col) return ''; return this.dicoTri.sens>0?' ▲':' ▼'; },
+    // surcharges d'intitulé/catégorie (éditables dans le Dictionnaire, persistées en config)
+    labelCarte(key){ const o=this.intitulesCartes[key]; return (o && o.label!=null && o.label!=='') ? o.label : (this.resultat ? this.resultat.champs[key].label : key); },
+    tabCarte(key){ const o=this.intitulesCartes[key]; return (o && o.tab!=null && o.tab!=='') ? o.tab : (this.resultat ? this.resultat.champs[key].tab : ''); },
+    majIntitule(key,patch){ const cur={...(this.intitulesCartes[key]||{})}; Object.assign(cur,patch); this.intitulesCartes={...this.intitulesCartes,[key]:cur}; },
+    async enregistrerIntitules(){ try{ await this.api('POST','/api/config',{intitules_cartes:this.intitulesCartes}); }catch(e){ this.err(e); } },
+    // surcharge du titre proposé (éditable dans le Dictionnaire, persistée ; clé = titre d'origine)
+    titreAffiche(key,orig){ const m=this.titresProposes[key]; const v=m&&m[orig]; return (v!=null&&v!=='')? v : orig; },
+    majTitre(key,orig,val){ const cur={...(this.titresProposes[key]||{})}; cur[orig]=val; this.titresProposes={...this.titresProposes,[key]:cur}; },
+    async enregistrerTitres(){ try{ await this.api('POST','/api/config',{titres_proposes:this.titresProposes}); }catch(e){ this.err(e); } },
+    // filtre par groupe : déplie en Reprise les seules cartes du groupe choisi
+    estDuGroupe(key,g){ const c=this.resultat.champs[key]; const conf=c.confiance;
+      switch(g){
+        case 'abouti': return !!(c.source_spans && c.source_spans.length);
+        case 'elevee': return conf!=null && conf>=0.8;
+        case 'moyenne': return conf!=null && conf>=0.5 && conf<0.8;
+        case 'faible': return conf!=null && conf<0.5;
+        case 'vide':   return conf==null;
+        case 'ambigu': return !!c.ambigu;
+        default: return false; } },
+    libelleGroupe(g){ return {abouti:'abouti',elevee:'confiance élevée',moyenne:'confiance moyenne',faible:'confiance faible',vide:'champ vide',ambigu:'ambigus'}[g]||g; },
+    filtrerGroupe(g){
+      if(!this.resultat){ this.onglet='reprise'; this.info('Traitez un DEX pour explorer ce groupe.'); return; }
+      const membres={}; this.resultat.ordre_champs.forEach(k=>{ membres[k]=this.estDuGroupe(k,g); });
+      const nv={}; this.resultat.ordre_champs.forEach(k=>{ nv[k]=!membres[k]; });  // replié sauf membres du groupe
+      this.replie=nv; this.onglet='reprise';
+      const premier=this.ordreKeys.find(k=>membres[k]);
+      if(premier) this.$nextTick(()=>{ const el=document.getElementById('c-'+premier); if(el) el.scrollIntoView({block:'center',behavior:'smooth'}); });
+      const n=Object.values(membres).filter(Boolean).length;
+      this.info(`${n} carte(s) du groupe « ${this.libelleGroupe(g)} » dépliée(s).`); },
+    // tri de l'historique
+    trierHist(col){ if(this.histTri.col===col){ this.histTri={col,sens:-this.histTri.sens}; } else { this.histTri={col,sens:1}; } },
+    ariaSortH(col){ if(this.histTri.col!==col) return 'none'; return this.histTri.sens>0?'ascending':'descending'; },
+    flecheH(col){ if(this.histTri.col!==col) return ''; return this.histTri.sens>0?' ▲':' ▼'; },
+    allerLigneDico(key,si){ this.onglet='dictionnaire'; const idx=(si==null?0:si); this.suggCible=key+'-'+idx;
+      this.$nextTick(()=>{ const el=document.getElementById('dico-'+key+'-'+idx)||document.querySelector('[id^="dico-'+key+'-"]'); if(el) el.scrollIntoView({block:'center',behavior:'smooth'}); }); },
+    appliquerDepuisSuggestion(key,s){ this.choisirSuggestion(key,s);
+      this.replie={...this.replie,[key]:false}; this.onglet='reprise'; this.selection=key;
+      this.$nextTick(()=>{ const el=document.getElementById('c-'+key); if(el) el.scrollIntoView({block:'center',behavior:'smooth'}); }); },
+    voirDansDocument(key,s){ this.onglet='reprise'; this.selection=key;
+      this.$nextTick(()=>{ this.allerParagraphe(s.index); }); },
+    // --- Administration : valeurs par défaut de l'e-mail (config locale) ---
+    allerAdmin(){ this.onglet='admin'; this.chargerConfig(); },
+    async chargerConfig(){ try{ const cfg=await this.api('GET','/api/config');
+      if(cfg && cfg.email) this.adminEmail={...this.adminEmail, ...cfg.email};
+      if(cfg) this.pastilleConfCouleur = cfg.pastille_confiance_couleur_champ !== false;
+      if(cfg && cfg.ordre_cartes) this.ordreCartes = {...cfg.ordre_cartes};
+      if(cfg && cfg.intitules_cartes) this.intitulesCartes = {...cfg.intitules_cartes};
+      if(cfg && cfg.titres_proposes) this.titresProposes = {...cfg.titres_proposes};
+    }catch(e){ /* défauts conservés */ } },
+    async enregistrerOrdre(){ try{ const m={};
+      Object.keys(this.ordreCartes).forEach(k=>{ const v=parseInt(this.ordreCartes[k],10); if(!isNaN(v)) m[k]=v; });
+      this.ordreCartes=m;
+      await this.api('POST','/api/config',{ordre_cartes:m});
+      this.ordreEnregistre=true; setTimeout(()=>{ this.ordreEnregistre=false; }, 2500);
+    }catch(e){ this.err(e); } },
+    async reinitOrdre(){ this.ordreCartes={}; try{ await this.api('POST','/api/config',{ordre_cartes:{}});
+      this.ordreEnregistre=true; setTimeout(()=>{ this.ordreEnregistre=false; }, 2500); }catch(e){ this.err(e); } },
+    majOrdre(key,val){ const v=parseInt(val,10); this.ordreCartes={...this.ordreCartes,[key]:(isNaN(v)?undefined:v)}; },
+    async enregistrerPastille(){ try{ await this.api('POST','/api/config',{pastille_confiance_couleur_champ:this.pastilleConfCouleur}); }catch(e){ this.err(e); } },
+    async enregistrerAdmin(){ try{ const cfg=await this.api('POST','/api/config',{email:{...this.adminEmail}});
+      if(cfg && cfg.email) this.adminEmail={...this.adminEmail, ...cfg.email};
+      this.adminEnregistre=true; setTimeout(()=>{ this.adminEnregistre=false; }, 2500);
+      this.info('Configuration e-mail enregistrée.'); }catch(e){ this.err(e); } },
+    reinitAdmin(){ this.adminEmail={adresses:'fredgarcia@mail.fr', objet_prefixe:'Castin ; ', contenu_prefixe:'', suffixe:'Cordialement,'}; },
+    // --- Signalement par e-mail : préparer un brouillon ÉDITABLE puis envoyer ---
+    //     Le corps reprend TOUTES les infos de la carte. mailto = texte brut ;
+    //     une version HTML est disponible (bouton) pour coller dans Outlook.
+    ficheCarte(key,type,extra){
+      const c=this.resultat.champs[key];
+      const dex=this.resultat.identification.solution||this.resultat.gabarit_signature||'inconnu';
+      const date=new Date().toLocaleString('fr-FR');
+      const contenu=this.contenuAffiche(key)||'(vide)';
+      const sug=(c.suggestions||[]).map(s=>`${s.titre} (proximité ${s.score})`);
+      const champs=[
+        ['DEX', dex],
+        ['Gabarit', this.resultat.gabarit_signature||'—'],
+        ['Version de règles', this.resultat.rules_version||'—'],
+        ['Date', date],
+        ['Champ CAST\u2019IN', `${this.labelCarte(key)} (${this.tabCarte(key)})`],
+        ['Type de champ', c.kind],
+        ['Type de signalement', type],
+        ['Confiance', `${c.confiance==null?'—':c.confiance} (${this.libelleConf(c.confiance)})`],
+        ['Score brut', c.score_brut==null?'—':c.score_brut],
+        ['Raison', c.raison||'—'],
+        ['Repérage (titre)', c.titre_repere||'(non repéré)'],
+        ['À vérifier (routage)', c.route_attention?'oui':'non'],
+        ['Ambigu', c.ambigu?'oui':'non'],
+      ];
+      if(extra && extra.section_choisie) champs.push(['Section choisie',
+        `${extra.section_choisie.titre||'?'}${extra.section_moteur&&extra.section_moteur.titre?' (au lieu de '+extra.section_moteur.titre+')':''}`]);
+      if(extra && extra.commentaire) champs.push(['Commentaire', extra.commentaire]);
+
+      // --- texte brut ---
+      const T=[];
+      if(this.adminEmail.contenu_prefixe && this.adminEmail.contenu_prefixe.trim()) T.push(this.adminEmail.contenu_prefixe.trim(),'');
+      T.push('Signalement CAST\u2019IN','===================');
+      champs.forEach(([k,v])=>T.push(`${k} : ${v}`));
+      T.push('','Contenu de la carte :', contenu);
+      if(sug.length){ T.push('','Suggestions :'); sug.forEach(s=>T.push('- '+s)); }
+      if(this.resultat.points_a_verifier && this.resultat.points_a_verifier.length){
+        T.push('','Points à vérifier (DEX) :'); this.resultat.points_a_verifier.forEach(p=>T.push('- '+p)); }
+      if(this.adminEmail.suffixe && this.adminEmail.suffixe.trim()) T.push('', this.adminEmail.suffixe.trim());
+
+      // --- HTML (pour coller dans Outlook) ---
+      const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const H=[];
+      H.push('<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1a1a1a">');
+      if(this.adminEmail.contenu_prefixe && this.adminEmail.contenu_prefixe.trim()) H.push('<p>'+esc(this.adminEmail.contenu_prefixe.trim())+'</p>');
+      H.push('<h3 style="margin:0 0 .4em">Signalement CAST\u2019IN</h3>');
+      H.push('<table cellpadding="6" cellspacing="0" style="border-collapse:collapse;border:1px solid #ccc">');
+      champs.forEach(([k,v])=>H.push(`<tr><td style="border:1px solid #ccc;background:#f4f6ff;font-weight:bold">${esc(k)}</td><td style="border:1px solid #ccc">${esc(v)}</td></tr>`));
+      H.push('</table>');
+      H.push('<p style="font-weight:bold;margin:.8em 0 .2em">Contenu de la carte :</p>');
+      H.push('<pre style="white-space:pre-wrap;font-family:inherit;background:#f6f8ff;border:1px solid #ddd;padding:8px;margin:0">'+esc(contenu)+'</pre>');
+      if(sug.length){ H.push('<p style="font-weight:bold;margin:.8em 0 .2em">Suggestions :</p><ul>'+sug.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul>'); }
+      if(this.resultat.points_a_verifier && this.resultat.points_a_verifier.length){
+        H.push('<p style="font-weight:bold;margin:.8em 0 .2em">Points à vérifier (DEX) :</p><ul>'+this.resultat.points_a_verifier.map(p=>'<li>'+esc(p)+'</li>').join('')+'</ul>'); }
+      if(this.adminEmail.suffixe && this.adminEmail.suffixe.trim()) H.push('<p>'+esc(this.adminEmail.suffixe.trim())+'</p>');
+      H.push('</div>');
+
+      return { texte:T.join('\n'), html:H.join('') };
+    },
+    preparerMail(key,type,extra){
+      const c=this.resultat.champs[key];
+      const f=this.ficheCarte(key,type,extra);
+      this.mail={ key, champLabel:c.label,
+        dest:this.adminEmail.adresses||'',
+        objet:(this.adminEmail.objet_prefixe||'')+type,
+        corps:f.texte, html:f.html };
+      this.$nextTick(()=>{ const el=this.$refs.mailDest; if(el&&el.focus) el.focus(); });
+    },
+    async copierFicheHtml(){
+      if(!this.mail) return;
+      try{
+        const blobH=new Blob([this.mail.html||''],{type:'text/html'});
+        const blobT=new Blob([this.mail.corps||''],{type:'text/plain'});
+        await navigator.clipboard.write([new ClipboardItem({'text/html':blobH,'text/plain':blobT})]);
+        this.info('Fiche HTML copiée — collez-la (Ctrl+V) dans le corps du message Outlook.');
+      }catch(e){ this.err('Copie HTML non disponible sur ce navigateur ; utilisez le corps texte.'); }
+    },
+    envoyerMail(){
+      if(!this.mail) return;
+      const dest=(this.mail.dest||'').split(';').map(s=>s.trim()).filter(Boolean).join(',');  // mailto : adresses séparées par ','
+      const url='mailto:'+encodeURIComponent(dest).replace(/%2C/g,',')
+        +'?subject='+encodeURIComponent(this.mail.objet||'')
+        +'&body='+encodeURIComponent(this.mail.corps||'');
+      try{ window.location.href=url; }catch(e){ this.err('Impossible d\'ouvrir la messagerie.'); }
+      this.info('Brouillon e-mail ouvert dans la messagerie.');
+      this.mail=null;
+    },
+    annulerMail(){ this.mail=null; },
+    surlignage(idx){
+      if(!this.resultat) return {actif:false,labels:[],style:{}};
+      const set = this.toutAnnoter ? this.resultat.ordre_champs : (this.selection?[this.selection]:[]);
+      let coul=null, fond=null; const labels=[];
+      for(const k of set){
+        for(const [s,e] of this.spansAffiches(k)){
+          if(idx>=s && idx<e){ const c=this.couleurs[k];
+            if(!coul){coul=c.bord;fond=c.fond;}
+            if(idx===s) labels.push(this.resultat.champs[k].label);
+          }
+        }
+      }
+      return {actif:!!coul, labels, style:coul?{'--coul':coul,'--coulfond':fond}:{}};
+    },
+    classeConf(c){ if(c==null) return 'na'; if(c>=0.8) return 'elevee'; if(c>=0.5) return 'moyenne'; return 'faible'; },
+    libelleConf(c){ if(c==null) return 'champ vide';
+      const p=Math.round(c*100)+' %'; if(c>=0.8) return 'confiance élevée '+p;
+      if(c>=0.5) return 'confiance moyenne '+p; return 'confiance faible '+p; },
+    etat(key){ if(!this.etats[key]) this.etats[key]={formulaire:false,type:'section_introuvable',correction:'',envoye:null};
+      return this.etats[key]; },
+    ouvrirSignalement(key){ this.etat(key).formulaire=true; },
+    async copier(key){
+      const txt=this.contenuAffiche(key)||'';
+      try{ await navigator.clipboard.writeText(txt); }
+      catch(e){ const ta=document.getElementById('c-'+key); ta.select(); try{document.execCommand('copy');}catch(_){} }
+      this.info('Copié : '+this.resultat.champs[key].label);
+    },
+    async valider(key,verdict,type,correction){
+      try{
+        await this.api('POST','/api/validate',{
+          dex_id:this.resultat.identification.solution||this.resultat.gabarit_signature,
+          onglet:this.resultat.champs[key].tab==='DEX'?'dex':'description_detaillee',
+          champ:key, confiance:this.resultat.champs[key].confiance,
+          score_brut:this.resultat.champs[key].score_brut, verdict,
+          type_signalement:type||null, correction:correction||null,
+          gabarit_signature:this.resultat.gabarit_signature,
+          duree_traitement_s:this.ecoule(), operateur_role:this.role,
+        });
+        this.etat(key).envoye=verdict;
+        this.info((verdict==='accepte'?'Accepté : ':'Signalé : ')+this.resultat.champs[key].label);
+        this.chargerMetriques();
+      }catch(e){ this.err(e); }
+    },
+    envoyerSignalement(key){ const s=this.etat(key);
+      const corr = s.correction ? {commentaire:s.correction} : null;
+      this.valider(key,'signale',s.type, corr);
+      this.preparerMail(key, s.type, corr);
+      s.formulaire=false; },
+    allerDashboard(){ this.onglet='dashboard'; this.chargerMetriques(); },
+    async chargerMetriques(){ try{ this.metriques=await this.api('GET','/api/metrics');
+      if(this.cibleEceInput==='') this.cibleEceInput=String(this.metriques.cible_ece); }catch(e){ this.err(e); } },
+    async enregistrerCible(){ const v=parseFloat(String(this.cibleEceInput).replace(',','.'));
+      if(isNaN(v)||v<0||v>1){ this.err('La cible ECE doit être un nombre entre 0 et 1.'); return; }
+      try{ await this.api('POST','/api/config',{cible_ece:v}); this.info('Cible ECE enregistrée : '+v); this.chargerMetriques(); }
+      catch(e){ this.err(e); } },
+    async rechargerRegles(){ try{ const r=await this.api('POST','/api/rules/reload'); this.info('Règles rechargées (version '+r.rules_version+').'); this.sante(); }
+      catch(e){ this.err(e); } },
+    async analyserCalibration(){ this.calibrationStatut='';
+      try{ this.calibrationAnalyse=await this.api('GET','/api/calibration');
+        this.calibrationStatut = this.calibrationAnalyse.suffisant
+          ? `Carte ajustée sur ${this.calibrationAnalyse.n} verdicts.`
+          : ''; }
+      catch(e){ this.err(e); } },
+    async proposerCalibration(){ try{ const r=await this.api('POST','/api/calibration/proposer');
+        this.calibrationStatut = `Candidate écrite : ${r.chemin} (v${r.version_proposee}). ${r.rappel}`; }
+      catch(e){ this.err(e); } },
+    async rejouer(){ if(!this.resultat) return;      try{ const body=Object.assign({dex_id:this.resultat.identification.solution||this.resultat.gabarit_signature}, this.source);
+        this.replay=await this.api('POST','/api/replay', body);
+        this.info('Replay effectué.'); this.chargerMetriques();
+      }catch(e){ this.err(e); } },
+    fmt(x){ return (x==null)?'—':x; },
+    navOnglets(ev){ const ordre=['reprise','dictionnaire','dashboard','historique','admin']; const i=ordre.indexOf(this.onglet);
+      if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ ev.preventDefault();
+        const j=(i+(ev.key==='ArrowRight'?1:ordre.length-1))%ordre.length; const cible=ordre[j];
+        const acts={dictionnaire:()=>this.allerDictionnaire(),dashboard:()=>this.allerDashboard(),historique:()=>this.allerHistorique(),admin:()=>this.allerAdmin(),reprise:()=>{this.onglet='reprise';}};
+        acts[cible]();
+        this.$nextTick(()=>{ const id={reprise:'tab-reprise',dictionnaire:'tab-dico',dashboard:'tab-dash',historique:'tab-hist',admin:'tab-admin'}[cible]; const el=document.getElementById(id); if(el) el.focus(); });
+      } },
+  },
+  mounted(){ this.sante(); this.chargerConfig(); setInterval(this.sante, 15000); },
+}).mount('#app');
+</script>
+</body>
+</html>
