@@ -14,14 +14,27 @@ CAST'IN disponible).
 
 - **Règle 1 — repérage par NOM** : les sections sont retrouvées par le **texte
   normalisé de leur titre** (numérotation, accents, casse et ponctuation
-  ignorés). Le numéro de chapitre (`~2.1`, `~13.3`…) n'est jamais utilisé.
-- **Règle 2 — contenu utile uniquement** : les **titres** et les **encarts
-  explicatifs** (paragraphe entièrement en *italique* + couleur non standard,
-  typiquement le bleu d'aide du gabarit) ne sont **pas** surlignés.
+  ignorés). Le numéro de chapitre (`~2.1`, `~13.3`…) n'est jamais utilisé comme
+  critère de recherche.
+- **Règle 2 — contenu utile uniquement** : les **encarts explicatifs**
+  (paragraphe entièrement en *italique* + couleur non standard, typiquement le
+  bleu d'aide du gabarit) ne sont **pas** surlignés.
 
-Les mots-clés de chaque champ et la façon de découper les sections reprennent
-ceux de `app/dex_castin_common.py` (`CASTIN_FIELDS`), pour un résultat cohérent
-avec le reste de la chaîne.
+**Détection des titres sans style Word.** Beaucoup de DEX ne stylent pas leurs
+titres (pas de style « Titre N » / « Heading N », pas de niveau de plan). Un
+paragraphe est donc considéré comme un **titre de section** s'il porte un style
+de titre Word **ou** s'il est court et commence par une **numérotation de
+chapitre** (`2.1 …`, `6 …`). Une section va jusqu'au prochain titre qui n'est
+pas un **sous-numéro** du titre courant (`6` englobe `6.1`, mais `11` s'arrête
+avant `12.2`) — robuste même quand la numérotation des chapitres n'est pas
+croissante.
+
+**Tout le contenu d'une section repérée est surligné** : texte, **tableaux**
+(cellule par cellule) et **images** en ligne. Seuls les encarts explicatifs
+sont écartés (règle 2).
+
+Les mots-clés de chaque champ reprennent ceux de `app/dex_castin_common.py`
+(`CASTIN_FIELDS`), pour un résultat cohérent avec le reste de la chaîne.
 
 ## Couleurs par défaut (modifiables)
 
@@ -51,15 +64,22 @@ toute valeur RGB est donc acceptée.
 4. Revenir à Word, `Alt`+`F8`, choisir **`AnnoterDEX`**, `Exécuter`.
 
 La macro crée puis ouvre `<nom>_ANNOTE.docx` (dans le même dossier que le DEX),
-surligne les champs, insère une **légende** en tête (couleur ↔ catégorie ↔
-onglet ↔ champs) suivie de la liste des **sections non repérées** à vérifier
-auprès de l'Équipier Ops (`RAS` si tout a été repéré).
+surligne les champs, et insère en tête une **légende** sous forme de tableau :
+
+| Couleur | Catégorie | Champs | Contenu repéré dans ce document |
+| --- | --- | --- | --- |
+
+La colonne **« Contenu repéré dans ce document »** reprend, pour chaque
+catégorie, le texte effectivement repéré dans **ce** DEX (paragraphes
+correspondant aux mots-clés) — pour vérifier d'un coup d'œil ce qui a été
+capté. La légende est suivie de la liste des **sections non repérées** à
+vérifier auprès de l'Équipier Ops (`RAS` si tout a été repéré).
 
 ## Limites
 
 - Le repérage est volontairement **prudent** : en cas de doute, rien n'est
-  deviné — la section non trouvée est listée dans la légende (règle 8).
-- Le découpage des sections s'appuie sur les **niveaux de plan** Word
-  (`OutlineLevel`). Un DEX dont les titres ne sont pas stylés en
-  « Titre N » / « Heading N » (texte mis en gras « à la main ») sera moins bien
-  repéré — comme pour le moteur Python.
+  deviné — la section non trouvée est listée sous la légende (règle 8).
+- La détection des titres « par numérotation » suppose des titres **courts**
+  commençant par un numéro de chapitre. Un titre sans numéro **et** sans style
+  Word (texte simplement mis en gras « à la main ») ne sera pas reconnu comme
+  une frontière de section.
