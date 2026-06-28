@@ -61,7 +61,51 @@ coup d'œil deux sections voisines.
 DEX**. Introuvable → **valeurs par défaut intégrées** (identiques au `.ini`
 fourni). Le message de fin indique la source utilisée.
 
+> Le fichier `.ini` est un **simple fichier texte** posé **à côté du DEX** ; il
+> ne s'importe **pas** dans l'éditeur VBA (seul `AnnotationDEX.bas` y est ajouté,
+> comme **module standard** — pas un module de classe).
+
 > Conserver des libellés **sans accents** dans le `.ini` (lecture ANSI).
+
+### Renommer, supprimer ou ajouter un champ
+
+Tout se fait dans la section **`[champs]`** du `.ini`, **sans toucher au code**.
+Une ligne = un champ : `Libellé = catégorie | couleur | type | mots-clés (; )`.
+
+- **Renommer** : changer le **libellé** (à gauche du `=`). Le libellé n'est qu'un
+  texte d'affichage (colonne *Champ* de la légende) ; le repérage s'appuie sur
+  les **mots-clés**, pas sur le libellé.
+  ```ini
+  Supervision & alertes = expl | jaune 3 | text | supervision
+  ```
+- **Supprimer** : effacer la ligne (ou la commenter avec `;` en début de ligne).
+  Le champ n'est alors plus surligné ni listé.
+  ```ini
+  ; Liste blanche = secu | vert 5 | text | liste blanche ; whitelist
+  ```
+- **Ajouter** : ajouter une ligne en choisissant la **catégorie**, la **couleur**
+  (`teinte nuance` ou hexa), le **type** et les **mots-clés**.
+  ```ini
+  Plan de reprise d'activite = reprise | indigo 6 | text | pra ; plan de reprise ; continuite
+  ```
+
+Points d'attention :
+
+1. **Mots-clés normalisés** : les écrire **en minuscules et sans accents**
+   (`metrologie`, pas `Métrologie`) — ils sont comparés au **titre normalisé**
+   de la section. Un mot-clé d'un seul mot reconnaît les pluriels (`certificat`
+   trouve « Certificats ») ; un mot-clé de plusieurs mots doit être **contenu
+   tel quel** dans le titre.
+2. **Nouvelle catégorie** : si un champ référence une catégorie absente, l'ajouter
+   dans `[categories]` (`clé = Libellé`). Au besoin, ajouter aussi une **teinte de
+   base** dans `[couleurs]`.
+3. **`type`** doit valoir l'une des valeurs :
+   `text | link | merge | appendix | idsolution | idauteur | idresponsable`.
+4. **Ordre** : l'ordre des lignes de `[champs]` fixe l'ordre des lignes de la
+   légende (et l'ordre de traitement).
+
+Après modification : **enregistrer le `.ini`** et **relancer `AnnoterDEX`**
+(aucune recompilation).
 
 ### Teintes de base par défaut
 
