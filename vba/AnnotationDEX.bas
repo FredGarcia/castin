@@ -548,10 +548,26 @@ End Sub
 Private Sub SurlignerParagraphe(p As Paragraph, coul As Long)
     Dim rng As Range
     Set rng = p.Range
-    If Len(Trim$(rng.Text)) = 0 Then Exit Sub   ' paragraphe vide : rien a surligner
+    ' Ignore les paragraphes vides ET les marques de fin de cellule / ligne
+    ' de tableau (Chr(7)), non surlignables (erreur 4605).
+    If EstVidePourSurlignage(rng) Then Exit Sub
     ' Fond de caractere (equivalent de <w:shd>) : couleur RGB exacte, modifiable.
+    On Error Resume Next    ' filet de securite : marqueur de tableau residuel
     rng.Shading.BackgroundPatternColor = coul
+    On Error GoTo 0
 End Sub
+
+' Vrai si le paragraphe ne contient aucun texte surlignable une fois retirees
+' les marques de fin de cellule / ligne de tableau et les fins de paragraphe.
+Private Function EstVidePourSurlignage(rng As Range) As Boolean
+    Dim t As String
+    t = rng.Text
+    t = Replace(t, Chr$(7), "")     ' marque de cellule / fin de ligne de tableau
+    t = Replace(t, vbCr, "")
+    t = Replace(t, vbLf, "")
+    t = Replace(t, Chr$(11), "")    ' saut de ligne manuel
+    EstVidePourSurlignage = (Len(Trim$(t)) = 0)
+End Function
 
 ' Texte de contenu d'une plage (pour la colonne "Contenu" de la legende) :
 ' on saute les titres et les encarts explicatifs.
@@ -580,7 +596,7 @@ End Sub
 Private Function EstExplicatif(p As Paragraph) As Boolean
     Dim rng As Range
     Set rng = p.Range
-    If Len(Trim$(rng.Text)) = 0 Then Exit Function
+    If EstVidePourSurlignage(rng) Then Exit Function   ' vide / marqueur de tableau
     If rng.Italic <> True Then Exit Function     ' True = tout le paragraphe en italique
     Dim c As Long
     c = rng.Font.Color
