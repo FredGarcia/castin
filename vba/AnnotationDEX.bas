@@ -1,4 +1,3 @@
-Attribute VB_Name = "AnnotationDEX"
 '======================================================================
 ' AnnotationDEX.bas — Surlignage des champs CAST'IN dans un DEX Word
 '----------------------------------------------------------------------

@@ -59,9 +59,16 @@ toute valeur RGB est donc acceptée.
 
 1. Ouvrir le DEX `.docx` à traiter (il doit être **enregistré sur disque**).
 2. `Alt`+`F11` pour ouvrir l'éditeur VBA.
-3. `Fichier > Importer un fichier…` → sélectionner `AnnotationDEX.bas`
-   (ou copier son contenu dans un nouveau module).
+3. Ajouter le code, au choix :
+   - **Import** : `Fichier > Importer un fichier…` → sélectionner
+     `AnnotationDEX.bas` ; ou
+   - **Copier-coller** : `Insertion > Module`, puis coller tout le contenu du
+     fichier dans la fenêtre de code.
 4. Revenir à Word, `Alt`+`F8`, choisir **`AnnoterDEX`**, `Exécuter`.
+
+> Le fichier ne contient **pas** de ligne `Attribute VB_Name = …` : un
+> copier-coller direct dans un module ne provoque donc pas d'erreur de syntaxe.
+> (Lors d'un import, Word recrée cette métadonnée automatiquement.)
 
 La macro crée puis ouvre `<nom>_ANNOTE.docx` (dans le même dossier que le DEX),
 surligne les champs, et insère en tête une **légende** sous forme de tableau :
