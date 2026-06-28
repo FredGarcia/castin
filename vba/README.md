@@ -36,42 +36,47 @@ sont écartés (règle 2).
 Les mots-clés de chaque champ reprennent ceux de `app/dex_castin_common.py`
 (`CASTIN_FIELDS`), pour un résultat cohérent avec le reste de la chaîne.
 
-## Configuration (couleurs, catégories, répartition des champs)
+## Configuration (couleurs, catégories, champs)
 
-Toute la configuration vit dans un fichier **`AnnotationDEX.config.ini`**
-(fourni dans ce dossier), pour la modifier **sans toucher au code** :
+Toute la configuration vit dans **`AnnotationDEX.config.ini`** (fourni ici),
+pour la modifier **sans toucher au code**. Chaque **champ** a sa **propre
+couleur**, exprimée par une **teinte de base + une nuance** (du clair au foncé) :
 
-- `[couleurs]` : une couleur par clé, en **hexadécimal RVB** (`RRGGBB`) ;
-- `[categories]` : `clé = Libellé | clé_de_couleur` (l'ordre fixe l'ordre des
-  lignes de la légende) ;
-- `[champs]` : `Libellé du champ = catégorie | type | mots-clés (séparés par ;)`
-  où `type` ∈ `text | link | merge | appendix`.
+- `[couleurs]` : les **teintes de base**, en hexadécimal RVB (`RRGGBB`) ;
+- `[categories]` : `clé = Libellé` (libellé affiché dans la colonne *Catégorie*,
+  l'ordre fixe l'ordre des lignes de la légende) ;
+- `[champs]` : `Libellé = catégorie | couleur | type | mots-clés (; )`
+  - `couleur` = `<teinte> <nuance>` — ex. `jaune 2`, `bleu clair`, `vert fonce`
+    — où la **nuance** va de `1` (très clair) à `5` (base) à `9` (très foncé),
+    ou en mots `tres clair / clair / moyen / fonce / tres fonce` ; un **hexa**
+    `RRGGBB` direct est aussi accepté ;
+  - `type` ∈ `text | link | merge | appendix | idsolution | idauteur | idresponsable`.
 
-**Où le fichier est cherché** : d'abord le chemin de la constante
-`CONFIG_CHEMIN` (en tête du `.bas`, vide par défaut), puis
-`AnnotationDEX.config.ini` **dans le dossier du DEX**. S'il est introuvable, la
-macro utilise des **valeurs par défaut intégrées** (identiques au `.ini` fourni)
-— elle fonctionne donc sans configuration. Le message de fin indique quelle
-source a été utilisée.
+Ainsi, à l'intérieur d'une catégorie, les champs se **déclinent du clair au
+foncé** (ex. Plage `jaune 2` → Sauvegardes `jaune 6`), ce qui distingue d'un
+coup d'œil deux sections voisines.
 
-> Conserver des libellés **sans accents** dans le `.ini` (lecture ANSI), ou
-> enregistrer le fichier en ANSI.
+**Où le fichier est cherché** : d'abord la constante `CONFIG_CHEMIN` (en tête du
+`.bas`, vide par défaut), puis `AnnotationDEX.config.ini` **dans le dossier du
+DEX**. Introuvable → **valeurs par défaut intégrées** (identiques au `.ini`
+fourni). Le message de fin indique la source utilisée.
 
-### Couleurs et catégories par défaut
+> Conserver des libellés **sans accents** dans le `.ini` (lecture ANSI).
 
-| Couleur | Catégorie | Champs |
-| --- | --- | --- |
-| 🔴 `FF9999` rouge clair | Identifiants | N° de solution, Auteur, Responsable |
-| 🟠 `FFB266` orange | Description détaillée | Lien Dossier Archi, Schéma Applicatif, Description Fonctionnelle, Données de la solution, Description Technique |
-| 🟡 `FFEB78` jaune | Exploitation courante | Plage de fonctionnement, Supervision, Observabilité, Log, Sauvegardes |
-| 🟢 `92D06E` vert | Sécurité / accès | Servitudes, Comptes et services, Certificats, Liste blanche |
-| 🔵 `8EB4E3` bleu | Échanges / livraison | Flux, Support, Changement et MEP, Matière (repo) |
-| 🟣 `9F9FE0` indigo | Reprise / annexes | Procédures de restauration / reconstruction / resynchronisation, Informations supplémentaires |
+### Teintes de base par défaut
+
+| Teinte | Hexa | Catégorie | Champs (du clair au foncé) |
+| --- | --- | --- | --- |
+| 🔴 rouge | `E53935` | Identifiants | N° de solution, Auteur, Responsable |
+| 🟠 orange | `FB8C00` | Description détaillée | Lien Dossier Archi, Schéma Applicatif, Description Fonctionnelle, Données de la solution, Description Technique |
+| 🟡 jaune | `FDD835` | Exploitation courante | Plage de fonctionnement, Supervision, Observabilité, Log, Sauvegardes |
+| 🟢 vert | `7CB342` | Sécurité / accès | Servitudes, Comptes et services, Certificats, Liste blanche |
+| 🔵 bleu | `1E88E5` | Échanges / livraison | Flux, Support, Changement et MEP, Matière (repo) |
+| 🟣 indigo | `5C6BC0` | Reprise / annexes | Procédures de restauration / reconstruction / resynchronisation, Informations supplémentaires |
 
 > *« Principes et décisions »* reste volontairement **vide** (règle 5) : il
 > n'est donc jamais surligné. Le surlignage utilise un fond de caractère
-> (`Shading.BackgroundPatternColor`), équivalent du `<w:shd>` OOXML : toute
-> valeur RGB est acceptée.
+> (`Shading.BackgroundPatternColor`), équivalent du `<w:shd>` OOXML.
 
 ## Installation et exécution
 
@@ -89,21 +94,17 @@ source a été utilisée.
 > (Lors d'un import, Word recrée cette métadonnée automatiquement.)
 
 La macro crée puis ouvre `<nom>_ANNOTE.docx` (dans le même dossier que le DEX),
-surligne les champs, et insère en tête une **légende** sous forme de tableau :
+surligne les champs, et insère en tête une **légende** avec **une ligne par
+champ** :
 
-| Couleur | Catégorie | Champs | Contenu repéré dans ce document |
+| Couleur | Catégorie | Champ | Contenu repéré dans ce document |
 | --- | --- | --- | --- |
 
-La colonne **« Contenu repéré dans ce document »** reprend, pour chaque
-catégorie, ce qui a été effectivement capté dans **ce** DEX :
-
-- les **tableaux** sont restitués **ligne par ligne** (`cellule | cellule | …`),
-  et non plus aplatis ;
-- les **images** des sections repérées sont collées en **miniatures**
-  (hauteur ≤ 48 pt).
-
-La légende est suivie de la liste des **sections non repérées** à vérifier
-auprès de l'Équipier Ops (`RAS` si tout a été repéré).
+La colonne **« Contenu repéré dans ce document »** reprend ce qui a été capté
+pour **ce** champ, **collé en réduit** (police 7 pt) : les **tableaux** sont
+recopiés tels quels (en petit) et les **images** réduites en **miniatures**
+(hauteur ≤ 36 pt). La légende est suivie de la liste des **champs non repérés**
+à vérifier auprès de l'Équipier Ops (`RAS` si tout a été repéré).
 
 ## Limites
 
@@ -116,3 +117,6 @@ auprès de l'Équipier Ops (`RAS` si tout a été repéré).
 - Les **miniatures** ne concernent que les images **en ligne**
   (`InlineShapes`) ; une image **ancrée/flottante** n'est pas reprise dans la
   légende.
+- Le collage réduit du contenu utilise le presse-papiers ; en cas d'échec sur
+  un passage, la macro bascule automatiquement sur une **restitution texte** de
+  ce passage (aucune interruption).

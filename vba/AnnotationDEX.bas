@@ -1,87 +1,67 @@
 '======================================================================
 ' AnnotationDEX.bas — Surlignage des champs CAST'IN dans un DEX Word
 '----------------------------------------------------------------------
-' OBJECTIF
-'   Produire une COPIE ANNOTEE (<nom>_ANNOTE.docx) d'un Dossier
-'   d'Exploitation (DEX) au format .docx, dans laquelle chaque passage
-'   destine a un champ CAST'IN est surligne dans la couleur de sa
-'   categorie. But : maximiser la VITESSE et la JUSTESSE du copier-coller
-'   manuel vers CAST'IN (pas d'API CAST'IN disponible).
+' Produit une COPIE ANNOTEE (<nom>_ANNOTE.docx) d'un DEX .docx ou chaque
+' passage destine a un champ CAST'IN est surligne dans la couleur DE CE
+' CHAMP. But : copier-coller manuel vers CAST'IN plus rapide et plus sur.
+' Le DEX SOURCE N'EST JAMAIS MODIFIE (travail sur une copie disque).
 '
-'   Le DEX SOURCE N'EST JAMAIS MODIFIE : la macro travaille sur une copie
-'   du fichier sur disque.
+' CONFIGURATION : fichier "AnnotationDEX.config.ini" (a cote du DEX, ou
+' chemin CONFIG_CHEMIN ci-dessous). Absent -> valeurs par defaut integrees.
+'   [couleurs]   teintes de base (hexa RRGGBB)
+'   [categories] libelles des categories (colonne "Categorie")
+'   [champs]     Libelle = categorie | couleur | type | mots-cles(; )
+'                couleur = "<teinte> <nuance 1..9>" (clair->fonce) ou hexa
+'                type = text | link | merge | appendix
+'                       | idsolution | idauteur | idresponsable
 '
-' CONFIGURATION (couleurs, categories, repartition des champs)
-'   Lue depuis un fichier INI externe "AnnotationDEX.config.ini" place
-'   dans le meme dossier que le DEX (ou au chemin CONFIG_CHEMIN ci-dessous).
-'   Si le fichier est absent, les valeurs PAR DEFAUT integrees sont
-'   utilisees (cf. Sub ChargerDefauts).
-'
-' REPERAGE DES SECTIONS (regle 1 : par NOM)
-'   Les titres sont retrouves par le texte NORMALISE de leur paragraphe
-'   (numerotation, accents, casse, ponctuation ignores). Un paragraphe est
-'   un TITRE s'il porte un style de titre Word (OutlineLevel) OU s'il est
-'   court et commence par une numerotation de chapitre ("2.1 ...", "6 ...").
-'   Tout le contenu d'une section reperee (texte, tableaux, images) est
-'   surligne ; seuls les encarts d'aide (italique + couleur) sont ecartes
-'   (regle 2).
-'
-' UTILISATION
-'   1. Ouvrir le DEX .docx (enregistre sur disque).
-'   2. Alt+F11 -> Insertion > Module -> coller ce code (ou importer le .bas).
-'   3. Alt+F8 -> AnnoterDEX -> Executer.
+' REPERAGE (regle 1, par NOM) : titres retrouves par leur texte normalise
+' (numerotation/accents/casse/ponctuation ignores). Un paragraphe est un
+' titre s'il a un style de titre Word OU s'il commence par une numerotation
+' de chapitre ("2.1 ...", "6 ..."). Encarts d'aide (italique+couleur)
+' ecartes (regle 2). Tableaux et images des sections reperees inclus.
 '======================================================================
 
 Option Explicit
 
-' Chemin explicite d'un fichier de config (laisser "" pour chercher
-' "AnnotationDEX.config.ini" a cote du DEX, puis retomber sur les defauts).
 Private Const CONFIG_CHEMIN As String = ""
 Private Const CONFIG_NOM As String = "AnnotationDEX.config.ini"
 
-' --- Couleurs (cle -> Long RGB) --------------------------------------
-Private gDictCoul As Object         ' Scripting.Dictionary : cle_couleur -> Long
+' --- Teintes de base (cle -> Long RGB) -------------------------------
+Private gDictCoul As Object
 
-' --- Categories (dans l'ordre d'affichage de la legende) -------------
-Private gCatKey()     As String
-Private gCatLabel()   As String
-Private gCatCoulKey() As String     ' cle de couleur (brute, resolue ensuite)
-Private gCatCoul()    As Long       ' couleur resolue
-Private gNbCat        As Long
+' --- Categories ------------------------------------------------------
+Private gCatKey()   As String
+Private gCatLabel() As String
+Private gNbCat      As Long
 
 ' --- Champs ----------------------------------------------------------
-Private gLabel()    As String
-Private gCatOf()    As String       ' cle de categorie du champ
-Private gKind()     As String       ' text | link | merge | appendix
-Private gKw()       As String       ' mots-cles normalises, separes par "|"
-Private gCoul()     As Long         ' couleur resolue du champ
-Private gTrouve()   As Boolean
-Private gSpans()    As Collection   ' spans de contenu [debut, fin] reperes
-Private gNbChamps   As Long
-
-' --- Identifiants ----------------------------------------------------
-Private gIdentSpans As Collection
-Private gIdentCoul  As Long
+Private gLabel()  As String
+Private gCatOf()  As String
+Private gTerm()   As String         ' terme de couleur ("jaune 2", hexa...)
+Private gKind()   As String         ' text|link|merge|appendix|idsolution|idauteur|idresponsable
+Private gKw()     As String         ' mots-cles normalises, separes par "|"
+Private gCoul()   As Long           ' couleur resolue du champ
+Private gTrouve() As Boolean
+Private gSpans()  As Collection     ' spans de contenu [debut, fin]
+Private gNbChamps As Long
 
 ' --- Caches de la structure du document ------------------------------
-Private pPara()    As Paragraph
-Private pLevel()   As Long
-Private pIsHead()  As Boolean
-Private pNorm()    As String
-Private pNum()     As String        ' jeton de numerotation ("6", "12.2"), "" si style Word
-Private pCount     As Long
+Private pPara()   As Paragraph
+Private pLevel()  As Long
+Private pIsHead() As Boolean
+Private pNorm()   As String
+Private pNum()    As String
+Private pCount    As Long
 
-' --- Divers ----------------------------------------------------------
-Private gSourceConfig As String     ' origine de la config (pour le message final)
+Private gSourceConfig As String
 
 '======================================================================
 ' POINT D'ENTREE
 '======================================================================
 Public Sub AnnoterDEX()
-    Dim src As Document
+    Dim src As Document, ann As Document, fso As Object
     Dim cheminSrc As String, cheminAnn As String, dossier As String, base As String
-    Dim ann As Document
-    Dim fso As Object
 
     On Error GoTo Echec
 
@@ -92,16 +72,13 @@ Public Sub AnnoterDEX()
 
     Set src = ActiveDocument
     cheminSrc = src.FullName
-
     If src.Path = "" Then
-        MsgBox "Le DEX doit d'abord etre enregistre sur le disque " & _
-               "(la copie annotee est faite a partir du fichier source).", vbExclamation
+        MsgBox "Le DEX doit d'abord etre enregistre sur le disque.", vbExclamation
         Exit Sub
     End If
     If Not src.Saved Then
-        If MsgBox("Le document contient des modifications non enregistrees." & vbCrLf & _
-                  "La copie annotee sera faite a partir de la DERNIERE VERSION ENREGISTREE." & vbCrLf & _
-                  "Continuer ?", vbQuestion + vbYesNo) = vbNo Then Exit Sub
+        If MsgBox("Modifications non enregistrees : la copie annotee partira de la " & _
+                  "derniere version enregistree. Continuer ?", vbQuestion + vbYesNo) = vbNo Then Exit Sub
     End If
 
     dossier = src.Path
@@ -111,8 +88,7 @@ Public Sub AnnoterDEX()
 
     Set fso = CreateObject("Scripting.FileSystemObject")
     If fso.FileExists(cheminAnn) Then
-        If MsgBox("Le fichier suivant existe deja et va etre remplace :" & vbCrLf & _
-                  cheminAnn & vbCrLf & "Continuer ?", vbQuestion + vbYesNo) = vbNo Then Exit Sub
+        If MsgBox("Remplacer le fichier existant ?" & vbCrLf & cheminAnn, vbQuestion + vbYesNo) = vbNo Then Exit Sub
         Dim d As Document
         For Each d In Documents
             If StrComp(d.FullName, cheminAnn, vbTextCompare) = 0 Then d.Close SaveChanges:=wdDoNotSaveChanges
@@ -125,7 +101,6 @@ Public Sub AnnoterDEX()
     Application.ScreenUpdating = False
     ChargerConfig dossier
     ConstruireCacheStructure ann
-    AnnoterIdentifiants ann
     AnnoterTousLesChamps ann
     InsererLegende ann
     ann.Save
@@ -142,10 +117,10 @@ Echec:
 End Sub
 
 '======================================================================
-' CONFIGURATION : fichier INI externe, sinon defauts integres
+' CONFIGURATION
 '======================================================================
 Private Sub ChargerConfig(dossierDoc As String)
-    Dim fso As Object, chemin As String
+    Dim fso As Object, chemin As String, cand As String
     Set fso = CreateObject("Scripting.FileSystemObject")
 
     chemin = ""
@@ -153,7 +128,6 @@ Private Sub ChargerConfig(dossierDoc As String)
         If fso.FileExists(CONFIG_CHEMIN) Then chemin = CONFIG_CHEMIN
     End If
     If Len(chemin) = 0 Then
-        Dim cand As String
         cand = dossierDoc & Application.PathSeparator & CONFIG_NOM
         If fso.FileExists(cand) Then chemin = cand
     End If
@@ -163,7 +137,6 @@ Private Sub ChargerConfig(dossierDoc As String)
         ParseIni chemin
         gSourceConfig = chemin
     End If
-    ' Filet : config absente ou incomplete -> defauts integres
     If gNbChamps = 0 Or gNbCat = 0 Or gDictCoul.Count = 0 Then
         InitStructuresVides
         ChargerDefauts
@@ -175,19 +148,17 @@ End Sub
 
 Private Sub InitStructuresVides()
     Set gDictCoul = CreateObject("Scripting.Dictionary")
-    gDictCoul.CompareMode = 1       ' insensible a la casse
+    gDictCoul.CompareMode = 1
     gNbCat = 0 : gNbChamps = 0
     ReDim gCatKey(1 To 40) : ReDim gCatLabel(1 To 40)
-    ReDim gCatCoulKey(1 To 40) : ReDim gCatCoul(1 To 40)
-    ReDim gLabel(1 To 60) : ReDim gCatOf(1 To 60) : ReDim gKind(1 To 60)
-    ReDim gKw(1 To 60) : ReDim gCoul(1 To 60) : ReDim gTrouve(1 To 60)
-    ReDim gSpans(1 To 60)
-    Set gIdentSpans = New Collection
+    ReDim gLabel(1 To 60) : ReDim gCatOf(1 To 60) : ReDim gTerm(1 To 60)
+    ReDim gKind(1 To 60) : ReDim gKw(1 To 60) : ReDim gCoul(1 To 60)
+    ReDim gTrouve(1 To 60) : ReDim gSpans(1 To 60)
 End Sub
 
 Private Sub ParseIni(chemin As String)
     Dim contenu As String, lignes() As String, ln As String, sect As String
-    Dim i As Long, pos As Long, k As String, v As String, parts() As String
+    Dim i As Long, pos As Long, k As String, v As String, parts() As String, kw As String
 
     contenu = LireTexte(chemin)
     contenu = Replace(contenu, vbCrLf, vbLf)
@@ -210,14 +181,13 @@ Private Sub ParseIni(chemin As String)
                             gDictCoul(LCase$(k)) = HexVersCouleur(v)
                         Case "categories"
                             parts = Split(v, "|")
-                            If UBound(parts) >= 1 Then
-                                AjouterCategorie k, Trim$(parts(0)), LCase$(Trim$(parts(1)))
-                            End If
+                            AjouterCategorie k, Trim$(parts(0))
                         Case "champs"
                             parts = Split(v, "|")
                             If UBound(parts) >= 2 Then
-                                AjouterChamp k, LCase$(Trim$(parts(0))), LCase$(Trim$(parts(1))), _
-                                             NormaliserMotsCles(parts(2))
+                                If UBound(parts) >= 3 Then kw = NormaliserMotsCles(parts(3)) Else kw = ""
+                                AjouterChamp k, LCase$(Trim$(parts(0))), Trim$(parts(1)), _
+                                             LCase$(Trim$(parts(2))), kw
                             End If
                     End Select
                 End If
@@ -226,7 +196,6 @@ Private Sub ParseIni(chemin As String)
     Next i
 End Sub
 
-' "a ; b ;c" -> "a|b|c"  (mots-cles, deja normalises dans la config)
 Private Function NormaliserMotsCles(s As String) As String
     Dim parts() As String, i As Long, acc As String
     parts = Split(s, ";")
@@ -239,92 +208,81 @@ Private Function NormaliserMotsCles(s As String) As String
     NormaliserMotsCles = acc
 End Function
 
-Private Sub AjouterCategorie(cle As String, libelle As String, cleCouleur As String)
+Private Sub AjouterCategorie(cle As String, libelle As String)
     gNbCat = gNbCat + 1
     gCatKey(gNbCat) = LCase$(cle)
     gCatLabel(gNbCat) = libelle
-    gCatCoulKey(gNbCat) = cleCouleur
 End Sub
 
-Private Sub AjouterChamp(libelle As String, cleCat As String, kind As String, kw As String)
+Private Sub AjouterChamp(libelle As String, cleCat As String, terme As String, _
+                         kind As String, kw As String)
     gNbChamps = gNbChamps + 1
     gLabel(gNbChamps) = libelle
     gCatOf(gNbChamps) = cleCat
+    gTerm(gNbChamps) = terme
     gKind(gNbChamps) = kind
     gKw(gNbChamps) = kw
     gTrouve(gNbChamps) = False
     Set gSpans(gNbChamps) = New Collection
 End Sub
 
-' Resout les couleurs des categories et des champs a partir du dictionnaire.
 Private Sub ResoudreCouleurs()
     Dim i As Long
-    For i = 1 To gNbCat
-        gCatCoul(i) = CoulDepuisCle(gCatCoulKey(i))
-    Next i
     For i = 1 To gNbChamps
-        gCoul(i) = CoulCategorie(gCatOf(i))
+        gCoul(i) = CouleurDepuisTerme(gTerm(i))
     Next i
-    gIdentCoul = CoulCategorie("ident")
 End Sub
 
-Private Function CoulDepuisCle(cle As String) As Long
-    If gDictCoul.Exists(LCase$(cle)) Then
-        CoulDepuisCle = gDictCoul(LCase$(cle))
-    Else
-        CoulDepuisCle = RGB(255, 235, 120)   ' jaune par defaut
-    End If
-End Function
-
-Private Function CoulCategorie(cleCat As String) As Long
+Private Function CatLabel(cleCat As String) As String
     Dim i As Long
     For i = 1 To gNbCat
-        If gCatKey(i) = LCase$(cleCat) Then CoulCategorie = gCatCoul(i) : Exit Function
+        If gCatKey(i) = LCase$(cleCat) Then CatLabel = gCatLabel(i) : Exit Function
     Next i
-    CoulCategorie = RGB(255, 235, 120)
+    CatLabel = cleCat
 End Function
 
-' Valeurs PAR DEFAUT (identiques au fichier .ini fourni).
 Private Sub ChargerDefauts()
-    gDictCoul("ident") = HexVersCouleur("FF9999")
-    gDictCoul("orange") = HexVersCouleur("FFB266")
-    gDictCoul("jaune") = HexVersCouleur("FFEB78")
-    gDictCoul("vert") = HexVersCouleur("92D06E")
-    gDictCoul("bleu") = HexVersCouleur("8EB4E3")
-    gDictCoul("indigo") = HexVersCouleur("9F9FE0")
+    gDictCoul("rouge") = HexVersCouleur("E53935")
+    gDictCoul("orange") = HexVersCouleur("FB8C00")
+    gDictCoul("jaune") = HexVersCouleur("FDD835")
+    gDictCoul("vert") = HexVersCouleur("7CB342")
+    gDictCoul("bleu") = HexVersCouleur("1E88E5")
+    gDictCoul("indigo") = HexVersCouleur("5C6BC0")
 
-    AjouterCategorie "ident", "Identifiants", "ident"
-    AjouterCategorie "desc", "Description detaillee", "orange"
-    AjouterCategorie "expl", "Exploitation courante", "jaune"
-    AjouterCategorie "secu", "Securite / acces", "vert"
-    AjouterCategorie "flux", "Echanges / livraison", "bleu"
-    AjouterCategorie "reprise", "Reprise / annexes", "indigo"
+    AjouterCategorie "ident", "Identifiants"
+    AjouterCategorie "desc", "Description detaillee"
+    AjouterCategorie "expl", "Exploitation courante"
+    AjouterCategorie "secu", "Securite / acces"
+    AjouterCategorie "flux", "Echanges / livraison"
+    AjouterCategorie "reprise", "Reprise / annexes"
 
-    AjouterChamp "Lien Dossier Archi (DAP...)", "desc", "link", "architecture fonctionnelle applicative"
-    AjouterChamp "Schema Applicatif (ADU...)", "desc", "link", "architecture fonctionnelle applicative|description de la solution|description fonctionnelle"
-    AjouterChamp "Description Fonctionnelle", "desc", "text", "description de la solution|description fonctionnelle"
-    AjouterChamp "Donnees de la solution", "desc", "text", "donnees"
-    AjouterChamp "Description Technique", "desc", "text", "architecture technique"
-    AjouterChamp "Plage de fonctionnement / maintenance", "expl", "text", "plage de fonctionnement|plages de fonctionnement"
-    AjouterChamp "Supervision", "expl", "text", "supervision"
-    AjouterChamp "Observabilite", "expl", "text", "metrologie"
-    AjouterChamp "Log", "expl", "text", "diagnostic|diagnostique|log|trace"
-    AjouterChamp "Sauvegardes", "expl", "text", "sauvegarde"
-    AjouterChamp "Servitudes et ordonnancements", "secu", "text", "servitude"
-    AjouterChamp "Comptes et services", "secu", "text", "compte de service|comptes de service"
-    AjouterChamp "Certificats", "secu", "text", "certificat"
-    AjouterChamp "Liste blanche", "secu", "text", "liste blanche|whitelist"
-    AjouterChamp "Flux", "flux", "text", "flux et interdependance|flux et interdependances"
-    AjouterChamp "Support", "flux", "text", "matrice de responsabilite|matrice des responsabilites|raci"
-    AjouterChamp "Changement et MEP", "flux", "merge", "controle des operations|changements et mep|changement et mep"
-    AjouterChamp "Matiere (repo)", "flux", "merge", "referentiel|repository|depot de code|matiere"
-    AjouterChamp "Procedure de restauration", "reprise", "text", "restauration"
-    AjouterChamp "Procedure de reconstruction", "reprise", "text", "reconstruction"
-    AjouterChamp "Procedure de resynchronisation", "reprise", "text", "resynchronisation"
-    AjouterChamp "Informations supplementaires", "reprise", "appendix", "assets mainframe"
+    AjouterChamp "Numero de solution", "ident", "rouge 2", "idsolution", ""
+    AjouterChamp "Auteur", "ident", "rouge 4", "idauteur", ""
+    AjouterChamp "Responsable", "ident", "rouge 6", "idresponsable", ""
+    AjouterChamp "Lien Dossier Archi (DAP...)", "desc", "orange 2", "link", "architecture fonctionnelle applicative"
+    AjouterChamp "Schema Applicatif (ADU...)", "desc", "orange 3", "link", "architecture fonctionnelle applicative|description de la solution|description fonctionnelle"
+    AjouterChamp "Description Fonctionnelle", "desc", "orange 4", "text", "description de la solution|description fonctionnelle"
+    AjouterChamp "Donnees de la solution", "desc", "orange 5", "text", "donnees"
+    AjouterChamp "Description Technique", "desc", "orange 6", "text", "architecture technique"
+    AjouterChamp "Plage de fonctionnement / maintenance", "expl", "jaune 2", "text", "plage de fonctionnement|plages de fonctionnement"
+    AjouterChamp "Supervision", "expl", "jaune 3", "text", "supervision"
+    AjouterChamp "Observabilite", "expl", "jaune 4", "text", "metrologie"
+    AjouterChamp "Log", "expl", "jaune 5", "text", "diagnostic|diagnostique|log|trace"
+    AjouterChamp "Sauvegardes", "expl", "jaune 6", "text", "sauvegarde"
+    AjouterChamp "Servitudes et ordonnancements", "secu", "vert 2", "text", "servitude"
+    AjouterChamp "Comptes et services", "secu", "vert 3", "text", "compte de service|comptes de service"
+    AjouterChamp "Certificats", "secu", "vert 4", "text", "certificat"
+    AjouterChamp "Liste blanche", "secu", "vert 5", "text", "liste blanche|whitelist"
+    AjouterChamp "Flux", "flux", "bleu 2", "text", "flux et interdependance|flux et interdependances"
+    AjouterChamp "Support", "flux", "bleu 3", "text", "matrice de responsabilite|matrice des responsabilites|raci"
+    AjouterChamp "Changement et MEP", "flux", "bleu 4", "merge", "controle des operations|changements et mep|changement et mep"
+    AjouterChamp "Matiere (repo)", "flux", "bleu 5", "merge", "referentiel|repository|depot de code|matiere"
+    AjouterChamp "Procedure de restauration", "reprise", "indigo 2", "text", "restauration"
+    AjouterChamp "Procedure de reconstruction", "reprise", "indigo 3", "text", "reconstruction"
+    AjouterChamp "Procedure de resynchronisation", "reprise", "indigo 4", "text", "resynchronisation"
+    AjouterChamp "Informations supplementaires", "reprise", "indigo 5", "appendix", "assets mainframe"
 End Sub
 
-' Lit un fichier texte (ANSI). Conserver des libelles sans accents.
 Private Function LireTexte(chemin As String) As String
     Dim fso As Object, ts As Object
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -336,20 +294,85 @@ End Function
 Private Function HexVersCouleur(ByVal h As String) As Long
     h = Trim$(h)
     If Left$(h, 1) = "#" Then h = Mid$(h, 2)
-    If Len(h) <> 6 Then HexVersCouleur = RGB(255, 235, 120) : Exit Function
+    If Not IsHex6(h) Then HexVersCouleur = RGB(253, 216, 53) : Exit Function
     Dim r As Long, g As Long, b As Long
-    On Error GoTo Defaut
     r = CLng("&H" & Mid$(h, 1, 2))
     g = CLng("&H" & Mid$(h, 3, 2))
     b = CLng("&H" & Mid$(h, 5, 2))
     HexVersCouleur = RGB(r, g, b)
-    Exit Function
-Defaut:
-    HexVersCouleur = RGB(255, 235, 120)
+End Function
+
+Private Function IsHex6(ByVal s As String) As Boolean
+    s = Trim$(s)
+    If Len(s) <> 6 Then Exit Function
+    Dim i As Long, c As String
+    For i = 1 To 6
+        c = LCase$(Mid$(s, i, 1))
+        If InStr("0123456789abcdef", c) = 0 Then Exit Function
+    Next i
+    IsHex6 = True
+End Function
+
+' --- Couleur d'un champ a partir d'un terme "<teinte> <nuance>" -------
+Private Function CouleurDepuisTerme(ByVal terme As String) As Long
+    terme = Trim$(Replace(terme, "-", " "))
+    If IsHex6(terme) Then CouleurDepuisTerme = HexVersCouleur(terme) : Exit Function
+
+    Dim toks() As String, base As String, reste As String, i As Long, shade As Long, baseLong As Long
+    toks = Split(terme, " ")
+    base = LCase$(Trim$(toks(0)))
+    reste = ""
+    For i = 1 To UBound(toks)
+        If Len(Trim$(toks(i))) > 0 Then reste = Trim$(reste & " " & toks(i))
+    Next i
+    shade = ShadeDepuisTexte(reste)
+
+    If gDictCoul.Exists(base) Then baseLong = gDictCoul(base) Else baseLong = RGB(253, 216, 53)
+    CouleurDepuisTerme = AppliquerNuance(baseLong, shade)
+End Function
+
+Private Function ShadeDepuisTexte(ByVal reste As String) As Long
+    reste = LCase$(SansAccents(Trim$(reste)))
+    If Len(reste) = 0 Then ShadeDepuisTexte = 5 : Exit Function
+    If IsNumeric(reste) Then
+        Dim n As Long : n = CLng(reste)
+        If n < 1 Then n = 1
+        If n > 9 Then n = 9
+        ShadeDepuisTexte = n : Exit Function
+    End If
+    If InStr(reste, "tres clair") > 0 Then
+        ShadeDepuisTexte = 2
+    ElseIf InStr(reste, "clair") > 0 Then
+        ShadeDepuisTexte = 3
+    ElseIf InStr(reste, "tres fonce") > 0 Then
+        ShadeDepuisTexte = 9
+    ElseIf InStr(reste, "fonce") > 0 Then
+        ShadeDepuisTexte = 7
+    ElseIf InStr(reste, "moyen") > 0 Then
+        ShadeDepuisTexte = 5
+    Else
+        ShadeDepuisTexte = 5
+    End If
+End Function
+
+' Nuance 1 (tres clair) .. 5 (base) .. 9 (tres fonce).
+Private Function AppliquerNuance(c As Long, shade As Long) As Long
+    Dim r As Long, g As Long, b As Long, t As Double
+    r = c And 255
+    g = (c \ 256) And 255
+    b = (c \ 65536) And 255
+    If shade < 5 Then
+        t = (5 - shade) / 4 * 0.75            ' melange vers le blanc
+        r = r + (255 - r) * t : g = g + (255 - g) * t : b = b + (255 - b) * t
+    ElseIf shade > 5 Then
+        t = (shade - 5) / 4 * 0.55            ' melange vers le noir
+        r = r * (1 - t) : g = g * (1 - t) : b = b * (1 - t)
+    End If
+    AppliquerNuance = RGB(CLng(r), CLng(g), CLng(b))
 End Function
 
 '======================================================================
-' CACHE DE STRUCTURE : reperage des titres (style Word OU numerotation)
+' CACHE DE STRUCTURE : titres (style Word OU numerotation)
 '======================================================================
 Private Sub ConstruireCacheStructure(doc As Document)
     Dim n As Long, i As Long, p As Paragraph
@@ -378,7 +401,6 @@ Private Sub DetecterTitre(p As Paragraph, ByRef estTitre As Boolean, _
                           ByRef numtok As String)
     Dim ol As Long, brut As String, re As Object, m As Object
     estTitre = False : niveau = 99 : norm = "" : numtok = ""
-
     brut = NettoyerLigne(p.Range.Text)
     If Len(brut) = 0 Then Exit Sub
 
@@ -407,10 +429,13 @@ Private Sub AnnoterTousLesChamps(doc As Document)
     Dim f As Long
     For f = 1 To gNbChamps
         Select Case gKind(f)
-            Case "text":     AnnoterChampText f
-            Case "link":     AnnoterChampLink f
-            Case "merge":    AnnoterChampMerge f
-            Case "appendix": AnnoterChampAppendix f
+            Case "text":          AnnoterChampText f
+            Case "link":          AnnoterChampLink f
+            Case "merge":         AnnoterChampMerge f
+            Case "appendix":      AnnoterChampAppendix f
+            Case "idsolution":    AnnoterIdentifiant f, "solution"
+            Case "idauteur":      AnnoterIdentifiant f, "auteur"
+            Case "idresponsable": AnnoterIdentifiant f, "responsable"
         End Select
     Next f
 End Sub
@@ -443,7 +468,7 @@ Private Sub AnnoterChampLink(f As Long)
 End Sub
 
 Private Sub AnnoterChampMerge(f As Long)
-    Dim kws() As String, hi As Long, fin As Long
+    Dim kws() As String, hi As Long, fin As Long, hi2 As Long, fin2 As Long, i As Long
     kws = Split(gKw(f), "|")
     hi = TrouverSection(kws, 1)
     If hi > 0 Then
@@ -451,7 +476,6 @@ Private Sub AnnoterChampMerge(f As Long)
         SurlignerPlage hi, fin, gCoul(f)
         EnregistrerSpan f, hi + 1, fin
         gTrouve(f) = True
-        Dim hi2 As Long, fin2 As Long
         hi2 = TrouverSection(kws, fin + 1)
         If hi2 > 0 Then
             fin2 = FinSection(hi2)
@@ -460,7 +484,6 @@ Private Sub AnnoterChampMerge(f As Long)
         End If
     End If
     If InStr(1, gLabel(f), "Matiere", vbTextCompare) > 0 Then
-        Dim i As Long
         For i = 1 To pCount
             If Not pIsHead(i) Then
                 If Not EstExplicatif(pPara(i)) Then
@@ -476,8 +499,7 @@ Private Sub AnnoterChampMerge(f As Long)
 End Sub
 
 Private Sub AnnoterChampAppendix(f As Long)
-    Dim kws() As String, hi As Long, fin As Long
-    Dim resync() As String
+    Dim kws() As String, hi As Long, fin As Long, resync() As String
     resync = Split("resynchronisation", "|")
     hi = TrouverSection(resync, 1)
     If hi > 0 Then
@@ -498,59 +520,42 @@ Private Sub AnnoterChampAppendix(f As Long)
     End If
 End Sub
 
-Private Sub EnregistrerSpan(f As Long, debut As Long, fin As Long)
-    If fin >= debut And debut >= 1 And fin <= pCount Then gSpans(f).Add Array(debut, fin)
-End Sub
-
-'======================================================================
-' IDENTIFIANTS (categorie "ident") : n# de solution, Auteur, Responsable
-'======================================================================
-Private Sub AnnoterIdentifiants(doc As Document)
-    Dim i As Long, txt As String, borne As Long
+' Identifiants : 1er paragraphe correspondant dans les 80 premiers.
+Private Sub AnnoterIdentifiant(f As Long, quoi As String)
+    Dim i As Long, borne As Long, txt As String, ok As Boolean
     Dim reSol As Object
-    Set reSol = CreerRegex("(^|[^A-Za-z0-9])S\d{4,6}([^0-9]|$)")
+    borne = pCount : If borne > 80 Then borne = 80
+    If quoi = "solution" Then Set reSol = CreerRegex("(^|[^A-Za-z0-9])S\d{4,6}([^0-9]|$)")
 
-    borne = pCount
-    If borne > 80 Then borne = 80
-
-    Dim solTrouve As Boolean, auteurTrouve As Boolean, respTrouve As Boolean
     For i = 1 To borne
         If Not pIsHead(i) Then
             txt = pPara(i).Range.Text
-            If Not solTrouve Then
-                If reSol.Test(txt) Then
-                    SurlignerParagraphe pPara(i), gIdentCoul
-                    gIdentSpans.Add Array(i, i)
-                    solTrouve = True
-                End If
-            End If
-            If Not auteurTrouve Then
-                If CommencePar(txt, "auteur") Then
-                    SurlignerParagraphe pPara(i), gIdentCoul
-                    gIdentSpans.Add Array(i, i)
-                    auteurTrouve = True
-                End If
-            End If
-            If Not respTrouve Then
-                If CommencePar(txt, "responsable") Or CommencePar(txt, "service") Then
-                    SurlignerParagraphe pPara(i), gIdentCoul
-                    gIdentSpans.Add Array(i, i)
-                    respTrouve = True
-                End If
+            ok = False
+            Select Case quoi
+                Case "solution":    ok = reSol.Test(txt)
+                Case "auteur":      ok = CommencePar(txt, "auteur")
+                Case "responsable": ok = CommencePar(txt, "responsable") Or CommencePar(txt, "service")
+            End Select
+            If ok Then
+                SurlignerParagraphe pPara(i), gCoul(f)
+                EnregistrerSpan f, i, i
+                gTrouve(f) = True
+                Exit Sub
             End If
         End If
     Next i
 End Sub
 
+Private Sub EnregistrerSpan(f As Long, debut As Long, fin As Long)
+    If fin >= debut And debut >= 1 And fin <= pCount Then gSpans(f).Add Array(debut, fin)
+End Sub
+
 Private Function CommencePar(txt As String, etiquette As String) As Boolean
-    Dim s As String
+    Dim s As String, suite As String
     s = LCase$(Trim$(SansAccents(txt)))
     If Left$(s, Len(etiquette)) = etiquette Then
-        Dim suite As String
         suite = Trim$(Mid$(s, Len(etiquette) + 1))
-        If Left$(suite, 1) = ":" Or Left$(suite, 1) = vbTab Or InStr(txt, vbTab) > 0 Then
-            CommencePar = True
-        End If
+        If Left$(suite, 1) = ":" Or Left$(suite, 1) = vbTab Or InStr(txt, vbTab) > 0 Then CommencePar = True
     End If
 End Function
 
@@ -568,12 +573,8 @@ Private Function TrouverSection(kws() As String, startAfter As Long) As Long
     TrouverSection = 0
 End Function
 
-' Fin (index inclus du dernier paragraphe de la section).
-'  - Titre numerote : jusqu'au prochain titre qui n'est pas un sous-numero
-'    du courant ("6" inclut "6.1" ; "11" s'arrete avant "12.2").
-'  - Titre de style Word : jusqu'au prochain titre de niveau de plan <=.
 Private Function FinSection(hi As Long) As Long
-    Dim j As Long
+    Dim j As Long, niveau As Long
     If Len(pNum(hi)) > 0 Then
         For j = hi + 1 To pCount
             If pIsHead(j) Then
@@ -585,7 +586,6 @@ Private Function FinSection(hi As Long) As Long
             End If
         Next j
     Else
-        Dim niveau As Long
         niveau = pLevel(hi)
         For j = hi + 1 To pCount
             If pIsHead(j) Then
@@ -636,7 +636,7 @@ End Sub
 Private Sub SurlignerParagraphe(p As Paragraph, coul As Long)
     Dim rng As Range
     Set rng = p.Range
-    If EstVidePourSurlignage(rng) Then Exit Sub   ' vide / marqueur de tableau (erreur 4605)
+    If EstVidePourSurlignage(rng) Then Exit Sub   ' marqueur de tableau (erreur 4605)
     On Error Resume Next
     rng.Shading.BackgroundPatternColor = coul
     On Error GoTo 0
@@ -653,11 +653,10 @@ Private Function EstVidePourSurlignage(rng As Range) As Boolean
 End Function
 
 Private Function EstExplicatif(p As Paragraph) As Boolean
-    Dim rng As Range
+    Dim rng As Range, c As Long
     Set rng = p.Range
     If EstVidePourSurlignage(rng) Then Exit Function
     If rng.Italic <> True Then Exit Function
-    Dim c As Long
     c = rng.Font.Color
     If c = wdColorAutomatic Then Exit Function
     If c = wdColorBlack Or c = RGB(0, 0, 0) Then Exit Function
@@ -666,10 +665,10 @@ Private Function EstExplicatif(p As Paragraph) As Boolean
 End Function
 
 '======================================================================
-' LEGENDE (en tete) : Couleur | Categorie | Champs | Contenu du document
+' LEGENDE : une ligne PAR CHAMP -> Couleur | Categorie | Champ | Contenu
 '======================================================================
 Private Sub InsererLegende(doc As Document)
-    Dim r As Range, t As Table
+    Dim r As Range, t As Table, f As Long
 
     Set r = doc.Range(0, 0)
     r.InsertBefore "LEGENDE — Copie annotee pour reprise CAST'IN " & _
@@ -678,34 +677,32 @@ Private Sub InsererLegende(doc As Document)
     r.Font.Size = 12
 
     Set r = doc.Paragraphs(2).Range
-    Set t = doc.Tables.Add(r, gNbCat + 1, 4)
+    Set t = doc.Tables.Add(r, gNbChamps + 1, 4)
     t.Borders.Enable = True
     t.AllowAutoFit = True
     t.PreferredWidthType = wdPreferredWidthPercent
-    t.Columns(1).PreferredWidth = 8
-    t.Columns(2).PreferredWidth = 16
-    t.Columns(3).PreferredWidth = 30
-    t.Columns(4).PreferredWidth = 46
+    t.Columns(1).PreferredWidth = 7
+    t.Columns(2).PreferredWidth = 17
+    t.Columns(3).PreferredWidth = 24
+    t.Columns(4).PreferredWidth = 52
 
     t.Cell(1, 1).Range.Text = "Couleur"
     t.Cell(1, 2).Range.Text = "Categorie"
-    t.Cell(1, 3).Range.Text = "Champs"
+    t.Cell(1, 3).Range.Text = "Champ"
     t.Cell(1, 4).Range.Text = "Contenu repere dans ce document"
     t.Rows(1).Range.Font.Bold = True
 
-    Dim c As Long
-    For c = 1 To gNbCat
+    For f = 1 To gNbChamps
         On Error Resume Next
-        t.Cell(c + 1, 1).Shading.BackgroundPatternColor = gCatCoul(c)
+        t.Cell(f + 1, 1).Shading.BackgroundPatternColor = gCoul(f)
         On Error GoTo 0
-        t.Cell(c + 1, 2).Range.Text = gCatLabel(c)
-        t.Cell(c + 1, 3).Range.Text = ChampsDeCategorie(gCatKey(c))
-        RemplirContenu doc, t.Cell(c + 1, 4), gCatKey(c)
-    Next c
+        t.Cell(f + 1, 2).Range.Text = CatLabel(gCatOf(f))
+        t.Cell(f + 1, 3).Range.Text = gLabel(f)
+        RemplirContenuChamp doc, t.Cell(f + 1, 4), f
+    Next f
 
-    ' Points a verifier : sections non reperees
-    Dim manque As String, f As Long
-    manque = ""
+    ' Points a verifier : champs non reperes
+    Dim manque As String
     For f = 1 To gNbChamps
         If Not gTrouve(f) Then manque = manque & "- " & gLabel(f) & vbCr
     Next f
@@ -717,172 +714,76 @@ Private Sub InsererLegende(doc As Document)
     rFin.Collapse wdCollapseEnd
     If Len(manque) > 0 Then
         rFin.InsertAfter vbCr & "Points a verifier aupres de l'Equipier Ops " & _
-            "(sections non reperees automatiquement) :" & vbCr & manque
+            "(non reperes automatiquement) :" & vbCr & manque
     Else
-        rFin.InsertAfter vbCr & "Points a verifier aupres de l'Equipier Ops : RAS " & _
-            "(toutes les sections ont ete reperees)." & vbCr
+        rFin.InsertAfter vbCr & "Points a verifier aupres de l'Equipier Ops : RAS." & vbCr
     End If
     rFin.InsertAfter vbCr
 End Sub
 
-' Liste des libelles de champs d'une categorie (colonne "Champs").
-Private Function ChampsDeCategorie(cleCat As String) As String
-    Dim f As Long, acc As String
-    For f = 1 To gNbChamps
-        If gCatOf(f) = LCase$(cleCat) Then
-            If Len(acc) > 0 Then acc = acc & ", "
-            acc = acc & gLabel(f)
-        End If
-    Next f
-    If Len(acc) = 0 And LCase$(cleCat) = "ident" Then
-        acc = "N# de solution, Auteur, Responsable"
-    End If
-    ChampsDeCategorie = acc
-End Function
-
-' Spans de contenu reperes pour une categorie (champs + identifiants).
-Private Function SpansDeCategorie(cleCat As String) As Collection
-    Dim res As New Collection, f As Long, k As Long
-    If LCase$(cleCat) = "ident" Then
-        For k = 1 To gIdentSpans.Count
-            res.Add gIdentSpans(k)
-        Next k
-    End If
-    For f = 1 To gNbChamps
-        If gCatOf(f) = LCase$(cleCat) Then
-            For k = 1 To gSpans(f).Count
-                res.Add gSpans(f)(k)
-            Next k
-        End If
-    Next f
-    Set SpansDeCategorie = res
-End Function
-
-' Remplit la cellule "Contenu" : texte (tableaux restitues ligne par ligne)
-' + miniatures des images des sections reperees.
-Private Sub RemplirContenu(doc As Document, cell As Cell, cleCat As String)
-    Dim spans As Collection, k As Long, arr, a As Long, b As Long, acc As String
-    Set spans = SpansDeCategorie(cleCat)
-
-    If spans.Count = 0 Then
-        cell.Range.Text = "(aucune section reperee)"
+' Colle le contenu repere du champ dans la cellule, en REDUIT (tableaux
+' et images compris), pour un recapitulatif compact.
+Private Sub RemplirContenuChamp(doc As Document, cell As Cell, f As Long)
+    Dim k As Long, arr, a As Long, b As Long, src As Range, dest As Range, colle As Boolean
+    VideCellule cell
+    If gSpans(f).Count = 0 Then
+        cell.Range.Text = "(non repere)"
         Exit Sub
     End If
 
-    For k = 1 To spans.Count
-        arr = spans(k) : a = arr(0) : b = arr(1)
-        Dim bloc As String
-        bloc = TexteContenu(a, b)
-        If Len(bloc) > 0 Then
-            If Len(acc) > 0 Then acc = acc & vbCr
-            acc = acc & bloc
-        End If
-    Next k
-    If Len(acc) = 0 Then acc = "(aucune section reperee)"
-
-    On Error Resume Next
-    cell.Range.Text = acc
-    CollerMiniatures cell, spans
-    On Error GoTo 0
-End Sub
-
-' Texte d'un span : paragraphes + tableaux restitues ligne par ligne.
-Private Function TexteContenu(debut As Long, fin As Long) As String
-    Dim i As Long, acc As String, p As Paragraph, t As String, tb As Table
-    If debut < 1 Then debut = 1
-    If fin > pCount Then fin = pCount
-    i = debut
-    Do While i <= fin
-        Set p = pPara(i)
-        If EnTableau(p) Then
-            Set tb = Nothing
+    colle = False
+    For k = 1 To gSpans(f).Count
+        arr = gSpans(f)(k) : a = arr(0) : b = arr(1)
+        If a >= 1 And b <= pCount And b >= a Then
+            Set src = doc.Range(pPara(a).Range.Start, pPara(b).Range.End)
             On Error Resume Next
-            Set tb = p.Range.Tables(1)
+            Set dest = FinCellule(cell)
+            If colle Then dest.InsertParagraphAfter : Set dest = FinCellule(cell)
+            src.Copy
+            Err.Clear
+            dest.Paste
+            If Err.Number <> 0 Then
+                Err.Clear
+                Set dest = FinCellule(cell)
+                dest.InsertAfter NettoyerLigne(src.Text)
+            End If
             On Error GoTo 0
-            If Not tb Is Nothing Then
-                acc = acc & RendreTable(tb)
-                Do While i <= fin
-                    If Not EnMemeTable(pPara(i), tb) Then Exit Do
-                    i = i + 1
-                Loop
-            Else
-                i = i + 1
-            End If
-        Else
-            If Not pIsHead(i) And Not EstExplicatif(p) Then
-                t = NettoyerLigne(p.Range.Text)
-                If Len(t) > 0 Then acc = acc & t & vbCr
-            End If
-            i = i + 1
+            colle = True
         End If
-    Loop
-    Do While Len(acc) > 0 And (Right$(acc, 1) = vbCr Or Right$(acc, 1) = vbLf)
-        acc = Left$(acc, Len(acc) - 1)
-    Loop
-    TexteContenu = acc
-End Function
-
-Private Function RendreTable(tb As Table) As String
-    Dim ro As Row, ce As Cell, ligne As String, acc As String, txt As String
-    For Each ro In tb.Rows
-        ligne = ""
-        On Error Resume Next
-        For Each ce In ro.Cells
-            txt = NettoyerLigne(ce.Range.Text)
-            If Len(ligne) = 0 Then ligne = txt Else ligne = ligne & " | " & txt
-        Next ce
-        On Error GoTo 0
-        acc = acc & ligne & vbCr
-    Next ro
-    RendreTable = acc
-End Function
-
-Private Function EnTableau(p As Paragraph) As Boolean
-    On Error Resume Next
-    EnTableau = p.Range.Information(wdWithInTable)
-    On Error GoTo 0
-End Function
-
-Private Function EnMemeTable(p As Paragraph, tb As Table) As Boolean
-    Dim t As Table
-    On Error Resume Next
-    If p.Range.Information(wdWithInTable) Then
-        Set t = p.Range.Tables(1)
-        If Not t Is Nothing Then EnMemeTable = (t.Range.Start = tb.Range.Start)
-    End If
-    On Error GoTo 0
-End Function
-
-' Colle, en fin de cellule, une miniature pour chaque image des sections.
-Private Sub CollerMiniatures(cell As Cell, spans As Collection)
-    Dim k As Long, arr, a As Long, b As Long, i As Long, shp As InlineShape, dest As Range
-    For k = 1 To spans.Count
-        arr = spans(k) : a = arr(0) : b = arr(1)
-        For i = a To b
-            If i >= 1 And i <= pCount Then
-                For Each shp In pPara(i).Range.InlineShapes
-                    On Error Resume Next
-                    shp.Range.Copy
-                    Set dest = cell.Range
-                    If dest.End - 1 >= dest.Start Then dest.End = dest.End - 1
-                    dest.Collapse wdCollapseEnd
-                    dest.InsertParagraphAfter
-                    dest.Collapse wdCollapseEnd
-                    dest.Paste
-                    On Error GoTo 0
-                Next shp
-            End If
-        Next i
     Next k
-    ReduireImages cell
+
+    If Not colle Then cell.Range.Text = "(non repere)" : Exit Sub
+    RetaillerContenu cell
 End Sub
 
-Private Sub ReduireImages(cell As Cell)
-    Dim shp As InlineShape
+Private Function FinCellule(cell As Cell) As Range
+    Dim r As Range
+    Set r = cell.Range
+    If r.End - 1 >= r.Start Then r.End = r.End - 1
+    r.Collapse wdCollapseEnd
+    Set FinCellule = r
+End Function
+
+Private Sub VideCellule(cell As Cell)
+    Dim r As Range
+    Set r = cell.Range
+    If r.End - 1 >= r.Start Then r.End = r.End - 1
+    r.Delete
+End Sub
+
+' Reduit le contenu colle : petite police, tableaux ajustes, miniatures.
+Private Sub RetaillerContenu(cell As Cell)
+    Dim tb As Table, shp As InlineShape
     On Error Resume Next
+    cell.Range.Font.Size = 7
+    cell.Range.ParagraphFormat.SpaceAfter = 0
+    For Each tb In cell.Range.Tables
+        tb.AutoFitBehavior wdAutoFitWindow
+        tb.Range.Font.Size = 7
+    Next tb
     For Each shp In cell.Range.InlineShapes
         shp.LockAspectRatio = msoTrue
-        If shp.Height > 48 Then shp.Height = 48
+        If shp.Height > 36 Then shp.Height = 36
     Next shp
     On Error GoTo 0
 End Sub
