@@ -36,24 +36,42 @@ sont écartés (règle 2).
 Les mots-clés de chaque champ reprennent ceux de `app/dex_castin_common.py`
 (`CASTIN_FIELDS`), pour un résultat cohérent avec le reste de la chaîne.
 
-## Couleurs par défaut (modifiables)
+## Configuration (couleurs, catégories, répartition des champs)
+
+Toute la configuration vit dans un fichier **`AnnotationDEX.config.ini`**
+(fourni dans ce dossier), pour la modifier **sans toucher au code** :
+
+- `[couleurs]` : une couleur par clé, en **hexadécimal RVB** (`RRGGBB`) ;
+- `[categories]` : `clé = Libellé | clé_de_couleur` (l'ordre fixe l'ordre des
+  lignes de la légende) ;
+- `[champs]` : `Libellé du champ = catégorie | type | mots-clés (séparés par ;)`
+  où `type` ∈ `text | link | merge | appendix`.
+
+**Où le fichier est cherché** : d'abord le chemin de la constante
+`CONFIG_CHEMIN` (en tête du `.bas`, vide par défaut), puis
+`AnnotationDEX.config.ini` **dans le dossier du DEX**. S'il est introuvable, la
+macro utilise des **valeurs par défaut intégrées** (identiques au `.ini` fourni)
+— elle fonctionne donc sans configuration. Le message de fin indique quelle
+source a été utilisée.
+
+> Conserver des libellés **sans accents** dans le `.ini` (lecture ANSI), ou
+> enregistrer le fichier en ANSI.
+
+### Couleurs et catégories par défaut
 
 | Couleur | Catégorie | Champs |
 | --- | --- | --- |
-| 🔴 rouge clair | Identifiants | N° de solution, Auteur, Responsable |
-| 🟠 orange | Description détaillée | Lien Dossier Archi, Schéma Applicatif, Description Fonctionnelle, Données de la solution, Description Technique |
-| 🟡 jaune | Exploitation courante | Plage de fonctionnement, Supervision, Observabilité, Log, Sauvegardes |
-| 🟢 vert | Sécurité / accès | Servitudes, Comptes et services, Certificats, Liste blanche |
-| 🔵 bleu | Échanges / livraison | Flux, Support, Changement et MEP, Matière (repo) |
-| 🟣 indigo | Reprise / annexes | Procédures de restauration / reconstruction / resynchronisation, Informations supplémentaires |
+| 🔴 `FF9999` rouge clair | Identifiants | N° de solution, Auteur, Responsable |
+| 🟠 `FFB266` orange | Description détaillée | Lien Dossier Archi, Schéma Applicatif, Description Fonctionnelle, Données de la solution, Description Technique |
+| 🟡 `FFEB78` jaune | Exploitation courante | Plage de fonctionnement, Supervision, Observabilité, Log, Sauvegardes |
+| 🟢 `92D06E` vert | Sécurité / accès | Servitudes, Comptes et services, Certificats, Liste blanche |
+| 🔵 `8EB4E3` bleu | Échanges / livraison | Flux, Support, Changement et MEP, Matière (repo) |
+| 🟣 `9F9FE0` indigo | Reprise / annexes | Procédures de restauration / reconstruction / resynchronisation, Informations supplémentaires |
 
 > *« Principes et décisions »* reste volontairement **vide** (règle 5) : il
-> n'est donc jamais surligné.
-
-**Pour changer une couleur**, modifier les lignes `RGB(...)` de la procédure
-`InitCouleurs` en tête du fichier `.bas`. Le surlignage utilise un fond de
-caractère (`Shading.BackgroundPatternColor`), équivalent du `<w:shd>` OOXML :
-toute valeur RGB est donc acceptée.
+> n'est donc jamais surligné. Le surlignage utilise un fond de caractère
+> (`Shading.BackgroundPatternColor`), équivalent du `<w:shd>` OOXML : toute
+> valeur RGB est acceptée.
 
 ## Installation et exécution
 
@@ -77,10 +95,15 @@ surligne les champs, et insère en tête une **légende** sous forme de tableau 
 | --- | --- | --- | --- |
 
 La colonne **« Contenu repéré dans ce document »** reprend, pour chaque
-catégorie, le texte effectivement repéré dans **ce** DEX (paragraphes
-correspondant aux mots-clés) — pour vérifier d'un coup d'œil ce qui a été
-capté. La légende est suivie de la liste des **sections non repérées** à
-vérifier auprès de l'Équipier Ops (`RAS` si tout a été repéré).
+catégorie, ce qui a été effectivement capté dans **ce** DEX :
+
+- les **tableaux** sont restitués **ligne par ligne** (`cellule | cellule | …`),
+  et non plus aplatis ;
+- les **images** des sections repérées sont collées en **miniatures**
+  (hauteur ≤ 48 pt).
+
+La légende est suivie de la liste des **sections non repérées** à vérifier
+auprès de l'Équipier Ops (`RAS` si tout a été repéré).
 
 ## Limites
 
@@ -90,3 +113,6 @@ vérifier auprès de l'Équipier Ops (`RAS` si tout a été repéré).
   commençant par un numéro de chapitre. Un titre sans numéro **et** sans style
   Word (texte simplement mis en gras « à la main ») ne sera pas reconnu comme
   une frontière de section.
+- Les **miniatures** ne concernent que les images **en ligne**
+  (`InlineShapes`) ; une image **ancrée/flottante** n'est pas reprise dans la
+  légende.
